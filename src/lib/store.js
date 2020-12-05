@@ -50,6 +50,49 @@ function gettter(store, instance, key) {
 }
 
 /**
+ * compare two objects
+ * @param {object} firstState first object
+ * @param {object} lastState last object
+ * @return {bool}
+ * @private
+ */
+function compareObject(firstState, lastState) {
+  let propInFirst = 0;
+  let propInLast = 0;
+  let prop;
+
+  if (firstState === lastState) {
+    return true;
+  }
+
+  if (
+    firstState == null ||
+    typeof a !== "object" ||
+    lastState == null ||
+    typeof b !== "object"
+  ) {
+    return false;
+  }
+
+  for (prop in firstState) {
+    propInFirst += 1;
+  }
+
+  for (prop in lastState) {
+    propInLast += 1;
+
+    if (
+      !(prop in firstState) ||
+      !compareObject(firstState[prop], lastState[prop])
+    ) {
+      return false;
+    }
+  }
+
+  return propInFirst === propInLast;
+}
+
+/**
  * add data by store
  * @param {string} key store key
  * @param {object} instance setter object
@@ -238,20 +281,34 @@ export function storageManager(params) {
         ...states[params.state][params.store]
       };
     },
+
+    /**
+     * pull state into storage
+     * @public
+     */
+    pull: () => {
+      states[params.state][params.store] = {
+        ...states[params.state][params.store],
+        ...storage[params.store]
+      };
+    },
+
     /**
      * substitute storage into state
      * @public
      */
     substituteStore: () => {
-      storage[params.store] = storage[params.state][params.store];
+      storage[params.store] = { ...storage[params.state][params.store] };
     },
+
     /**
      * substitute storage into state
      * @public
      */
     substituteState: () => {
-      states[params.state][params.store] = storage[params.store];
+      states[params.state][params.store] = { ...storage[params.store] };
     },
+
     /**
      * combine states
      * @param {string} state
@@ -263,6 +320,7 @@ export function storageManager(params) {
         ...states[params.state][params.store]
       };
     },
+
     /**
      * removes the repository and its copies from all states
      * @public
@@ -275,6 +333,7 @@ export function storageManager(params) {
         }
       });
     },
+
     /**
      * remove empty states
      * @public
@@ -285,6 +344,65 @@ export function storageManager(params) {
           delete states[params.state];
         }
       });
+    },
+
+    /**
+     * compare two state
+     * WARNING: states should not contain methods
+     * @param {string} state state name
+     * @return {bool}
+     * @public
+     */
+    compareStates: (state) => {
+      return compareObject(
+        states[params.state][params.store],
+        states[state][params.store]
+      );
+    },
+
+    /**
+     * compare state and store
+     * WARNING: states should not contain methods
+     * @return {bool}
+     * @public
+     */
+    compareWithState: () => {
+      return compareObject(
+        storage[params.store],
+        states[params.state][params.store]
+      );
+    },
+
+    /**
+     * compare state and instance object
+     * WARNING: states should not contain methods
+     * @param {object} instance object instance
+     * @return {bool}
+     * @public
+     */
+    compareStateWithInstance: (instance) => {
+      return compareObject(states[params.state][params.store], instance);
+    },
+
+    /**
+     * compare store and instance object
+     * WARNING: states should not contain methods
+     * @param {object} instance object instance
+     * @return {bool}
+     * @public
+     */
+    compareStoreWithInstance: (instance) => {
+      return compareObject(storage[params.store], instance);
+    },
+
+    /**
+     * clone storage and state
+     * @param {string} name new name
+     * @public
+     */
+    clone: (name) => {
+      storage[name] = { ...storage[params.store] };
+      states[params.state] = { ...states[params.state][params.store] };
     }
   };
 }
