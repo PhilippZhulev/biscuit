@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import "./styles.css";
 import { getState, dispatch, subscribeToState } from "./lib/store";
 import subscribe from "./lib/react-store";
+import { modelInit } from "./store/model/actions";
 
 /** subscribe to state */
-subscribeToState({ state: "MODEL_INIT", store: "model" }, (payload) => {
+subscribeToState(modelInit, (payload) => {
   console.log(payload);
 });
 
@@ -34,7 +35,7 @@ function ExempleFirst({ id, dot, dispatchInitModel }) {
 
 /** state params to props */
 const stateToProps = () => {
-  const model = getState("model", "MODEL_INIT");
+  const model = getState(modelInit);
   return {
     id: model.id,
     dot: model.dot
@@ -43,8 +44,7 @@ const stateToProps = () => {
 
 /** dispatch to props */
 const dispatchToProps = {
-  dispatchInitModel: (params) =>
-    dispatch({ state: "MODEL_INIT", store: "model" }, params)
+  dispatchInitModel: (params) => dispatch(modelInit, params)
 };
 
 /** subscribe component to store */

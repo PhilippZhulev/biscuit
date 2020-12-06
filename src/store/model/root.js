@@ -1,10 +1,10 @@
-import { newStorage, createActionTo, middleware } from "../../lib/store";
+import { newStorage, createActionsTo, middleware } from "../../lib/store";
 
 /** init new storage */
 newStorage("model", { id: 0, dot: "", data: null });
 
 /** bind new storage to actions */
-const model = createActionTo("model");
+const model = createActionsTo("model");
 
 /** example middleware */
 middleware(model).add((action, payload, state) => {
