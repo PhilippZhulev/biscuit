@@ -45,7 +45,7 @@ export default function subscribe(stateToProps, dispatchToProps) {
  * @public
  */
 export function useSubscribeToState(params) {
-  const [state, setState] = useState(getState(params.store, params.state));
+  const [state, setState] = useState(getState(params));
   useEffect(() => {
     subscribeToState(params, (instance) => {
       setState(instance);

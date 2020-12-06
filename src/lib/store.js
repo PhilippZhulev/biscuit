@@ -13,6 +13,9 @@ const states = {};
 /** middlewares list */
 const middlewares = {};
 
+/** actions collection */
+let collections = {};
+
 /**
  * active middleware functions
  * @param {string} action action name
@@ -67,9 +70,9 @@ function compareObject(firstState, lastState) {
 
   if (
     firstState == null ||
-    typeof a !== "object" ||
+    typeof firstState !== "object" ||
     lastState == null ||
-    typeof b !== "object"
+    typeof lastState !== "object"
   ) {
     return false;
   }
@@ -128,7 +131,7 @@ export function getStorage(key) {
  * @return {object} voids
  * @public
  */
-export function createActionTo(key) {
+export function createActionsTo(key) {
   return {
     /** add state action name
      * @param {string} action action name
@@ -136,11 +139,108 @@ export function createActionTo(key) {
      */
     state: (action) => {
       states[`"${action}"`] = { [key]: storage[key] };
+      const actionParams = { state: action, store: key };
+      return { ...actionParams };
     },
     /** store key */
     store: key
   };
 }
+
+/**
+ * create state collection
+ * @param {any} action
+ * @return {object} voids
+ * @public
+ */
+export function stateCollection(...action) {
+  const collection = {};
+  return {
+    /**
+     * init state collection
+     * @return {object} actions colecction
+     * @public
+     */
+    init: () => {
+      for (let i = 0; i < action.length; i++) {
+        if (typeof storage[action[i].store] === "undefined") {
+          console.error(`store ${action[i].store} not found`);
+          break;
+        }
+
+        if (typeof collection[action[i].store] === "undefined") {
+          collection[action[i].store] = [];
+        }
+
+        if (typeof states[`"${action[i].state}"`] === "undefined") {
+          console.error(`state ${action[i].state} not found`);
+          break;
+        }
+
+        if (
+          typeof states[`"${action[i].state}"`][action[i].store] === "undefined"
+        ) {
+          console.error(
+            `state key ${action[i].state} : ${action[i].store} not found`
+          );
+          break;
+        }
+
+        collection[action[i].store].push({ ...action[i] });
+      }
+
+      return collection;
+    }
+  };
+}
+
+/**
+ * merge state collections
+ * @param {any} collection
+ * @public
+ */
+export function combineStateCollections(...collection) {
+  collection.forEach((item) => {
+    collections = { ...collections, ...item.init() };
+  });
+}
+
+/**
+ * get state collections
+ * @return {object} voids
+ * @public
+ */
+export const getStateCollection = {
+  /**
+   * get all collections
+   * @return {object} collections object
+   * @public
+   */
+  all: () => ({ ...collections }),
+
+  /**
+   * get collecton from store
+   * @param {string} state state name
+   * @return {array} state list
+   * @public
+   */
+  fromStore: (store) => ({ ...collections[store] }),
+
+  /**
+   * filtring collecton by state
+   * @param {string} stateName state name
+   * @return {array} state list
+   * @public
+   */
+  outOfState: (stateName) => {
+    let out = null;
+    Object.keys(collections).forEach((key) => {
+      out = collections[key].filter(({ state }) => state === stateName);
+    });
+
+    return out;
+  }
+};
 
 /**
  * get state to storage
@@ -149,9 +249,9 @@ export function createActionTo(key) {
  * @return {object}
  * @public
  */
-export function getState(key, action) {
-  const act = states[`"${action}"`];
-  return gettter(act, { ...act[key] }, key);
+export function getState(params) {
+  const act = states[`"${params.state}"`];
+  return gettter(act, { ...act[params.store] }, params.store);
 }
 
 /**
@@ -214,7 +314,7 @@ export function dispatch(params, payload) {
  */
 export function subscribeToState(params, fn) {
   document.addEventListener("store.update", (e) => {
-    const g = getState(e.detail.store, params.state);
+    const g = getState({ store: e.detail.store, state: params.state });
     if (params.store && params.state) {
       if (e.detail.action === params.state && e.detail.store === params.store) {
         fn(g);
@@ -278,7 +378,7 @@ export function storageManager(params) {
     merge: () => {
       storage[params.store] = {
         ...storage[params.store],
-        ...states[params.state][params.store]
+        ...states[`"${params.state}"`][params.store]
       };
     },
 
@@ -287,8 +387,8 @@ export function storageManager(params) {
      * @public
      */
     pull: () => {
-      states[params.state][params.store] = {
-        ...states[params.state][params.store],
+      states[`"${params.state}"`][params.store] = {
+        ...states[`"${params.state}"`][params.store],
         ...storage[params.store]
       };
     },
@@ -298,7 +398,7 @@ export function storageManager(params) {
      * @public
      */
     substituteStore: () => {
-      storage[params.store] = { ...storage[params.state][params.store] };
+      storage[params.store] = { ...storage[`"${params.state}"`][params.store] };
     },
 
     /**
@@ -306,7 +406,7 @@ export function storageManager(params) {
      * @public
      */
     substituteState: () => {
-      states[params.state][params.store] = { ...storage[params.store] };
+      states[`"${params.state}"`][params.store] = { ...storage[params.store] };
     },
 
     /**
@@ -317,7 +417,7 @@ export function storageManager(params) {
     mergeState: (state) => {
       states[state][params.store] = {
         ...states[state][params.store],
-        ...states[params.state][params.store]
+        ...states[`"${params.state}"`][params.store]
       };
     },
 
@@ -327,9 +427,9 @@ export function storageManager(params) {
      */
     remove: () => {
       delete storage[params.store];
-      Object.keys(states[params.state]).forEach((item) => {
+      Object.keys(states[`"${params.state}"`]).forEach((item) => {
         if (item === params.store) {
-          delete states[params.state][params.store];
+          delete states[`"${params.state}"`][params.store];
         }
       });
     },
@@ -339,9 +439,9 @@ export function storageManager(params) {
      * @public
      */
     removeEmptyState: () => {
-      Object.keys(states[params.state]).forEach((item) => {
+      Object.keys(states[`"${params.state}"`]).forEach((item) => {
         if (Object.keys(item).length === 0) {
-          delete states[params.state];
+          delete states[`"${params.state}"`];
         }
       });
     },
@@ -355,8 +455,8 @@ export function storageManager(params) {
      */
     compareStates: (state) => {
       return compareObject(
-        states[params.state][params.store],
-        states[state][params.store]
+        states[`"${params.state}"`][params.store],
+        states[`"${state}"`][params.store]
       );
     },
 
@@ -369,7 +469,7 @@ export function storageManager(params) {
     compareWithState: () => {
       return compareObject(
         storage[params.store],
-        states[params.state][params.store]
+        states[`"${params.state}"`][params.store]
       );
     },
 
@@ -381,7 +481,7 @@ export function storageManager(params) {
      * @public
      */
     compareStateWithInstance: (instance) => {
-      return compareObject(states[params.state][params.store], instance);
+      return compareObject(states[`"${params.state}"`][params.store], instance);
     },
 
     /**
@@ -402,7 +502,23 @@ export function storageManager(params) {
      */
     clone: (name) => {
       storage[name] = { ...storage[params.store] };
-      states[params.state] = { ...states[params.state][params.store] };
-    }
+      states[`"${params.state}"`][name] = {
+        ...states[`"${params.state}"`][params.store]
+      };
+    },
+
+    /**
+     * update state
+     * @public
+     */
+    update: () => {
+      dispatch(params, {});
+    },
+
+    /**
+     * input params
+     * @public
+     */
+    props: params
   };
 }
