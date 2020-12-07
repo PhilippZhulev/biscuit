@@ -27,7 +27,7 @@ let collections = {};
 function activeMiddlewares(action, key, payload, store) {
   if (middlewares[key]) {
     middlewares[key].forEach((middle) => {
-      middle(action, payload, store);
+      middle(action, payload, store, key);
     });
   }
 }
