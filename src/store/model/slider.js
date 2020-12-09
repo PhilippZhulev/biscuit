@@ -1,19 +1,18 @@
-import { slideLayer, call, provide } from "../../lib/middlewares/slide-layer";
+import { slideLayer } from "../../lib/middlewares/slide-layer";
 
 const slide = slideLayer();
 
-slide.take("MODEL_INIT", function* (payload) {
-  const data = yield call((id) => {
-    return fetch("https://jsonplaceholder.typicode.com/todos/" + id)
-      .then((response) => response.json())
-      .then((json) => json);
-  }).args(payload.id);
+const api = async (id) => {
+  const response = await fetch(
+    "https://jsonplaceholder.typicode.com/todos/" + id
+  );
+  const json = await response.json();
+  return json;
+};
 
-  provide("MODEL_SUCCESS", { data });
-
-  yield (function () {
-    console.log(data);
-  })();
+slide.take("MODEL_INIT", async (read, write) => {
+  const data = await read.call(api).args(read.payload.id);
+  write.provide("MODEL_SUCCESS", { data });
 });
 
-export default slide.connect;
+export default slide;

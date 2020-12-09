@@ -1,5 +1,5 @@
 import { newStorage, createActionsTo, middleware } from "../../lib/store";
-import connect from "./slider";
+import slide from "./slider";
 
 /** init new storage */
 newStorage("model", { id: 0, dot: "", data: null });
@@ -17,6 +17,6 @@ middle.add((action, payload, state) => {
   }
 });
 
-middle.add(connect);
+middle.add(slide.connect);
 
 export default model;
