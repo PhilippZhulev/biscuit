@@ -5,8 +5,11 @@
  * @license MIT
  */
 
-import React, { useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { subscribeToState, getState, dispatch } from "./store";
+import { sandbox, throttle } from "./utils";
+
+const boxThrottle = sandbox(throttle);
 
 /**
  * subscriber react components
@@ -39,6 +42,35 @@ export default function subscribe(stateToProps, dispatchToProps) {
 }
 
 /**
+ * the observer for the states of a component
+ * @param {import("react").ReactElement} Element react element
+ * @param {array} deps dependence on the state
+ * @return {import("react").ReactElement}
+ * @public
+ */
+export function observer(Element, deps = []) {
+  const d = deps.map((dep) => dep.state);
+  const Decorator = (props) => {
+    const [state, setState] = useState({});
+    useEffect(() => {
+      const fn = (e) => {
+        if (d.includes(e.detail.action)) {
+          setState(e.detail.payload);
+        }
+      };
+      document.addEventListener("store.update", fn);
+      return () => {
+        document.removeEventListener("store.update", fn);
+      };
+    }, []);
+
+    return <Element {...props} {...state} />;
+  };
+
+  return memo(Decorator);
+}
+
+/**
  * huck subscribe store state
  * @param {object} params state params
  * @return {object}  store state
@@ -53,4 +85,25 @@ export function useSubscribeToState(params) {
   }, [params]);
 
   return [state, (payload) => dispatch(params, payload)];
+}
+
+/**
+ * huck dispatch
+ * @param {object} params state params
+ * @return {function}  dispatch
+ * @public
+ */
+export function useDispatch(params) {
+  return (payload) => dispatch(params, payload);
+}
+
+/**
+ * huck dispatch: throttle
+ * @param {object} params state params
+ * @param {number} count throttle timer
+ * @return {function}  dispatch
+ * @public
+ */
+export function useDispatchThrottle(params, count) {
+  return (payload) => boxThrottle.run(dispatch, count)(params, payload);
 }

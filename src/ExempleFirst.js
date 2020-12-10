@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./styles.css";
 import { getState, dispatch, subscribeToState } from "./lib/store";
 import subscribe from "./lib/react-store";
-import { modelInit } from "./store/model/actions";
+import { modelInit } from "./store/model/root";
 
 /** subscribe to state */
 subscribeToState(modelInit, (payload) => {

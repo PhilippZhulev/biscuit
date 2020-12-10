@@ -522,3 +522,22 @@ export function storageManager(params) {
     props: params
   };
 }
+
+export function createBiscuit(params) {
+  newStorage(params.store.name, params.store.initial);
+  const a = createActionsTo(params.store.name);
+  const stateList = {};
+  if (params.actions) {
+    for (let key in params.actions) {
+      stateList[key] = a.state(params.actions[key]);
+    }
+  }
+  if (params.middlewares.length > 0) {
+    const middle = middleware(a);
+    for (let fn of params.middlewares) {
+      middle.add(fn);
+    }
+  }
+
+  return stateList;
+}

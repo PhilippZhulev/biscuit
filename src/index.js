@@ -2,16 +2,17 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 import ExempleFirst from "./ExempleFirst";
-import ExempleTwo from "./ExsempleTwo";
+import ExempleTwo from "./ExempleTwo";
+import ExempleTree from "./ExempleTree";
 
-import modelStateCollection, { modelInit } from "./store/model/actions";
+import { modelInit } from "./store/model/root";
 import {
-  combineStateCollections,
+  //combineStateCollections,
   storageManager,
   subscribeToState
 } from "./lib/store";
 
-combineStateCollections(modelStateCollection);
+//combineStateCollections(modelStateCollection);
 
 const manager = storageManager(modelInit);
 
@@ -42,6 +43,7 @@ ReactDOM.render(
     <button onClick={handleRemove}>удалить хранилище</button>
     <ExempleFirst />
     <ExempleTwo />
+    <ExempleTree />
   </React.StrictMode>,
   rootElement
 );
