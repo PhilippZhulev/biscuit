@@ -261,7 +261,7 @@ export function getState(params) {
  * @return {object} voids
  * @public
  */
-export function dispatch(params, payload) {
+export async function dispatch(params, payload) {
   /** init voids */
   const voids = {
     merge: () => {}
@@ -271,7 +271,7 @@ export function dispatch(params, payload) {
     const act = states[`"${params.state}"`][params.store];
 
     /** initial middlewares */
-    activeMiddlewares(params.state, params.store, payload, act);
+    await activeMiddlewares(params.state, params.store, payload, act);
 
     /** update state data */
     states[`"${params.state}"`][params.store] = {
