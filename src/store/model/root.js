@@ -10,10 +10,9 @@ export const { modelInit, modelSuccess } = createBiscuit({
     modelInit: "MODEL_INIT",
     modelSuccess: "MODEL_SUCCESS"
   },
-  middlewares: [
+  middleware: [
     (action, payload, state) => {
       if (typeof payload.id === "number") {
-        console.log(action);
         state.dot += ".";
       }
     },

@@ -523,6 +523,12 @@ export function storageManager(params) {
   };
 }
 
+/**
+ * initial biscuit storage
+ * @param {object} params storage settings
+ * @return {object} action list
+ * @public
+ */
 export function createBiscuit(params) {
   newStorage(params.store.name, params.store.initial);
   const a = createActionsTo(params.store.name);
@@ -532,9 +538,9 @@ export function createBiscuit(params) {
       stateList[key] = a.state(params.actions[key]);
     }
   }
-  if (params.middlewares.length > 0) {
+  if (params.middleware.length > 0) {
     const middle = middleware(a);
-    for (let fn of params.middlewares) {
+    for (let fn of params.middleware) {
       middle.add(fn);
     }
   }

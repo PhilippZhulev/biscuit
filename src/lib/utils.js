@@ -5,7 +5,7 @@
  * @return {function}
  */
 export function throttle(callback, limit) {
-  var waiting = false;
+  let waiting = false;
   return function () {
     if (!waiting) {
       callback.apply(this, arguments);
@@ -14,6 +14,23 @@ export function throttle(callback, limit) {
         waiting = false;
       }, limit);
     }
+  };
+}
+
+/**
+ * debounce function
+ * @param {function} callback target function
+ * @param {number} limit counter
+ * @return {function}
+ */
+export function debounce(callback, limit) {
+  let isCooldown = false;
+
+  return function () {
+    if (isCooldown) return;
+    callback.apply(this, arguments);
+    isCooldown = true;
+    setTimeout(() => (isCooldown = false), limit);
   };
 }
 

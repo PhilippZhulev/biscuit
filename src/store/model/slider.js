@@ -7,12 +7,19 @@ const api = async (id) => {
     "https://jsonplaceholder.typicode.com/todos/" + id
   );
   const json = await response.json();
-  return json;
+  return { data: json };
 };
 
 slide.take("MODEL_INIT", async (read, write) => {
-  const data = await read.call(api).args(read.payload.id);
-  write.provide("MODEL_SUCCESS", { data });
+  const ch = write.makeChan();
+  read.call(api).args(read.payload.id).then(ch.add);
+  write.chanToProvide("MODEL_SUCCESS", ch);
 });
+
+// slide.take("MODEL_INIT", async (read, write) => {
+//   const data = await read.call(api).args(read.payload.id);
+//   await read.delay(1000);
+//   write.provide("MODEL_SUCCESS", data);
+// });
 
 export default slide;

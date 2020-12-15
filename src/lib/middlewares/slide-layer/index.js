@@ -1,4 +1,3 @@
-import { connectNext } from "./core";
 import { runtime } from "./runtime";
 
 export function slideLayer() {
@@ -8,10 +7,9 @@ export function slideLayer() {
     connect: (state, payload, _, key) => {
       for (let connector of connectors) {
         if (connector.act === state) {
-          runtime(connector, payload);
+          runtime(connector, payload, key);
         }
       }
-      connectNext(key);
     },
 
     take: (act, fn) => {
