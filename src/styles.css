@@ -1,4 +1,138 @@
-.App {
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+button {
+  cursor: pointer;
+}
+button:focus {
+  outline: 0;
+  box-shadow: none;
+}
+
+.app {
   font-family: sans-serif;
   text-align: center;
+  height: 500px;
+  background: rgb(56, 42, 88);
+  padding: 30px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.intro {
+  padding: 20px;
+  width: calc(100% - 900px);
+  text-align: left;
+}
+
+.introTitle {
+  color: #fff;
+  font-size: 46px;
+  display: flex;
+}
+
+.introLogo {
+  margin-right: 10px;
+  margin-top: -1px;
+}
+
+.introTitle span {
+  color: rgba(255, 255, 255, 0.397);
+  font-size: 12px;
+}
+
+.btnStarted {
+  width: 200px;
+  height: 44px;
+  margin-top: 15px;
+  border-radius: 6px;
+  background: transparent;
+  border: 2px solid #fff;
+  color: #fff;
+  font-size: 18px;
+}
+
+.introText {
+  color: #fff;
+  font-size: 18px;
+  margin-top: 0;
+}
+
+.installPanel {
+  margin-top: 70px;
+}
+
+.installTitle {
+  font-size: 14px;
+  color: #fff;
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.installPanel > span {
+  font-size: 14px;
+  color: #fff;
+  display: flex;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.installPanel > div {
+  color: #fff;
+  font-size: 16px;
+  border: 1px solid #fff;
+  padding: 10px;
+  width: 320px;
+  background: rgba(255, 255, 255, 0.055);
+  border-radius: 6px;
+}
+
+.btnMini {
+  border: 1px solid #fff;
+  border-radius: 4px;
+  background: transparent;
+  color: #fff;
+  margin-top: -1px;
+  margin-left: 5px;
+}
+
+.btnMini.active {
+  background: #fff;
+  color: rgb(56, 42, 88);
+}
+
+.box {
+  display: flex;
+  padding: 20px;
+  width: 1100px;
+  border-radius: 6px;
+  margin: "0 0 0 auto";
+  border: 1px dashed rgba(255, 255, 255, 1);
+}
+
+.grid {
+  display: flex;
+  padding: 20px;
+  width: 700px;
+  box-sizing: "border-box";
+  flex-wrap: wrap;
+  align-content: center;
+  margin: "auto 0 auto auto";
+}
+
+.tile {
+  width: 150px;
+  padding: 15px;
+  box-sizing: "border-box";
+  height: 150px;
+  border-radius: 6px;
+  margin: 10px;
+  border: 1px dashed rgba(255, 255, 255, 1);
+}
+
+.title {
+  color: #fff;
+  font-size: 12px;
 }

@@ -16,10 +16,4 @@ slide.take("MODEL_INIT", async (read, write) => {
   write.chanToProvide("MODEL_SUCCESS", ch);
 });
 
-// slide.take("MODEL_INIT", async (read, write) => {
-//   const data = await read.call(api).args(read.payload.id);
-//   await read.delay(1000);
-//   write.provide("MODEL_SUCCESS", data);
-// });
-
 export default slide;

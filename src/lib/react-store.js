@@ -7,9 +7,11 @@
 
 import React, { memo, useEffect, useState } from "react";
 import { subscribeToState, getState, dispatch } from "./store";
-import { sandbox, throttle } from "./utils";
+import { sandbox, throttle, debounce } from "./utils";
+import { emitters } from "./emittes";
 
 const boxThrottle = sandbox(throttle);
+const boxDebounce = sandbox(debounce);
 
 /**
  * subscriber react components
@@ -20,15 +22,19 @@ const boxThrottle = sandbox(throttle);
  */
 export default function subscribe(stateToProps, dispatchToProps) {
   return (Element) => {
-    return class extends React.Component {
+    return class extends React.PureComponent {
       /** mount update event */
       componentDidMount() {
-        document.addEventListener("store.update", () => this.forceUpdate());
+        emitters.storeEmitter.addEventListener("store.update", () =>
+          this.forceUpdate()
+        );
       }
 
       /** unmount update event */
       componentWillUnmount() {
-        document.removeEventListener("store.update", () => this.forceUpdate());
+        emitters.storeEmitter.removeEventListener("store.update", () =>
+          this.forceUpdate()
+        );
       }
 
       /** proxy element */
@@ -58,9 +64,9 @@ export function observer(Element, deps = []) {
           setState(e.detail.payload);
         }
       };
-      document.addEventListener("store.update", fn);
+      emitters.storeEmitter.addEventListener("store.update", fn);
       return () => {
-        document.removeEventListener("store.update", fn);
+        emitters.storeEmitter.removeEventListener("store.update", fn);
       };
     }, []);
 
@@ -90,7 +96,7 @@ export function useSubscribeToState(params) {
 /**
  * huck dispatch
  * @param {object} params state params
- * @return {function}  dispatch
+ * @return {function} dispatch
  * @public
  */
 export function useDispatch(params) {
@@ -106,4 +112,15 @@ export function useDispatch(params) {
  */
 export function useDispatchThrottle(params, count) {
   return (payload) => boxThrottle.run(dispatch, count)(params, payload);
+}
+
+/**
+ * huck dispatch: debounce
+ * @param {object} params state params
+ * @param {number} count throttle timer
+ * @return {function}  dispatch
+ * @public
+ */
+export function useDispatchDebounce(params, count) {
+  return (payload) => boxDebounce.run(dispatch, count)(params, payload);
 }

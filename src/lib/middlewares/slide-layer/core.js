@@ -101,7 +101,6 @@ export const slides = {
   },
 
   chanToProvide: async (action, ch, fn = null, waitLen = 1) => {
-    console.log(123);
     const resp = {
       send: (data) => dispatch({ store: getStoreBuffer(), state: action }, data)
     };

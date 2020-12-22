@@ -1,5 +1,6 @@
 import { createBiscuit } from "../../lib/store";
 import slide from "./slider";
+import reduce from "./reduce";
 
 export const { modelInit, modelSuccess } = createBiscuit({
   store: {
@@ -11,11 +12,12 @@ export const { modelInit, modelSuccess } = createBiscuit({
     modelSuccess: "MODEL_SUCCESS"
   },
   middleware: [
-    (action, payload, state) => {
-      if (typeof payload.id === "number") {
-        state.dot += ".";
+    (context) => {
+      if (typeof context.payload.id === "number") {
+        context.state.dot += ".";
       }
     },
+    reduce.connect,
     slide.connect
   ]
 });

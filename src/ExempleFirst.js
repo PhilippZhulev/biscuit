@@ -15,7 +15,9 @@ function ExempleFirst({ id, dot, dispatchInitModel }) {
   useEffect(() => {
     if (count > 0) {
       /** update state */
-      dispatchInitModel({ id: count });
+      dispatchInitModel({ id: count }).before((state) => {
+        console.log(state);
+      });
     }
   }, [count, dispatchInitModel]);
 
@@ -41,7 +43,6 @@ const stateToProps = () => {
     dot: model.dot
   };
 };
-
 /** dispatch to props */
 const dispatchToProps = {
   dispatchInitModel: (params) => dispatch(modelInit, params)

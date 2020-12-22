@@ -5,6 +5,21 @@
  * @license MIT
  */
 
+import { emitters } from "./emittes";
+import { debugCollection } from "./debuger";
+import {
+  creaateBiscuitValidator,
+  actionValidation,
+  stateValidator,
+  storeValidator
+} from "./validation";
+
+/** debug messages */
+const messages = {
+  writeError: "biscuit write error: Getter fields not writable.",
+  notKey: "biscuit read error: key not found."
+};
+
 /** storage instance */
 const storage = {};
 /** states instance */
@@ -17,6 +32,23 @@ const middlewares = {};
 let collections = {};
 
 /**
+ * create log for biscuit debuger
+ * @param {any} data is error -> new Error, is warn -> string
+ * @param {string} type error || warn
+ * @public
+ */
+export const createLog = function (data, type = "error") {
+  emitters.storeEmitter.dispatchEvent(
+    new CustomEvent("store.handle.debug", {
+      detail: {
+        data,
+        type
+      }
+    })
+  );
+};
+
+/**
  * active middleware functions
  * @param {string} action action name
  * @param {string} key store name
@@ -24,10 +56,10 @@ let collections = {};
  * @param {object} store
  * @private
  */
-function activeMiddlewares(action, key, payload, store) {
-  if (middlewares[key]) {
-    middlewares[key].forEach((middle) => {
-      middle(action, payload, store, key);
+async function activeMiddlewares(context, fn = () => null) {
+  if (middlewares[context.store]) {
+    await middlewares[context.store].forEach((middle) => {
+      middle(context, fn);
     });
   }
 }
@@ -44,11 +76,11 @@ function gettter(store, instance, key) {
   if (key in store) {
     return new Proxy(instance, {
       set: () => {
-        console.error("Getter fields not writable");
+        createLog(new Error(messages.writeError), "error");
       }
     });
   } else {
-    console.error("key not found");
+    createLog(new Error(messages.notKey), "error");
   }
 }
 
@@ -102,6 +134,7 @@ function compareObject(firstState, lastState) {
  * @public
  */
 export function addStorage(key, instance) {
+  storeValidator(key, storage);
   storage[key] = { ...storage[key], ...instance };
 }
 
@@ -122,6 +155,7 @@ export function newStorage(key, initial) {
  * @public
  */
 export function getStorage(key) {
+  storeValidator(key, storage);
   return gettter(storage, { ...storage[key] }, key);
 }
 
@@ -132,6 +166,7 @@ export function getStorage(key) {
  * @public
  */
 export function createActionsTo(key) {
+  storeValidator(key, storage);
   return {
     /** add state action name
      * @param {string} action action name
@@ -163,29 +198,6 @@ export function stateCollection(...action) {
      */
     init: () => {
       for (let i = 0; i < action.length; i++) {
-        if (typeof storage[action[i].store] === "undefined") {
-          console.error(`store ${action[i].store} not found`);
-          break;
-        }
-
-        if (typeof collection[action[i].store] === "undefined") {
-          collection[action[i].store] = [];
-        }
-
-        if (typeof states[`"${action[i].state}"`] === "undefined") {
-          console.error(`state ${action[i].state} not found`);
-          break;
-        }
-
-        if (
-          typeof states[`"${action[i].state}"`][action[i].store] === "undefined"
-        ) {
-          console.error(
-            `state key ${action[i].state} : ${action[i].store} not found`
-          );
-          break;
-        }
-
         collection[action[i].store].push({ ...action[i] });
       }
 
@@ -233,6 +245,8 @@ export const getStateCollection = {
    * @public
    */
   outOfState: (stateName) => {
+    stateValidator(stateName, states);
+
     let out = null;
     Object.keys(collections).forEach((key) => {
       out = collections[key].filter(({ state }) => state === stateName);
@@ -250,6 +264,8 @@ export const getStateCollection = {
  * @public
  */
 export function getState(params) {
+  actionValidation(params, states, storage);
+
   const act = states[`"${params.state}"`];
   return gettter(act, { ...act[params.store] }, params.store);
 }
@@ -261,17 +277,43 @@ export function getState(params) {
  * @return {object} voids
  * @public
  */
-export async function dispatch(params, payload) {
+export function dispatch(params, payload) {
+  actionValidation(params, states, storage);
+
   /** init voids */
   const voids = {
-    merge: () => {}
+    merge: () => {},
+    before: null,
+    after: null
   };
 
-  if (`"${params.state}"` in states) {
+  (async function () {
     const act = states[`"${params.state}"`][params.store];
+    const prev = { ...act };
+
+    /**
+     * call before state change
+     * @param {function} fn callback
+     * @public
+     */
+    voids.before = (fn) => {
+      fn(prev);
+    };
 
     /** initial middlewares */
-    await activeMiddlewares(params.state, params.store, payload, act);
+    payload = await new Promise((resolve) => {
+      activeMiddlewares(
+        {
+          action: params.state,
+          store: params.store,
+          payload: payload,
+          state: act
+        },
+        (newPayload) => {
+          resolve(newPayload);
+        }
+      );
+    });
 
     /** update state data */
     states[`"${params.state}"`][params.store] = {
@@ -280,7 +322,7 @@ export async function dispatch(params, payload) {
     };
 
     /** create update event */
-    document.dispatchEvent(
+    emitters.storeEmitter.dispatchEvent(
       new CustomEvent("store.update", {
         detail: {
           action: params.state,
@@ -291,6 +333,15 @@ export async function dispatch(params, payload) {
     );
 
     /**
+     * call after state change
+     * @param {function} fn callback
+     * @public
+     */
+    voids.after = (fn) => {
+      fn({ ...act });
+    };
+
+    /**
      * merge state into storage
      * @public
      */
@@ -298,10 +349,10 @@ export async function dispatch(params, payload) {
       if (`"${params.state}"` in states) {
         storage[params.store] = act;
       }
+
+      return voids;
     };
-  } else {
-    console.error("action not found");
-  }
+  })();
 
   return voids;
 }
@@ -313,7 +364,9 @@ export async function dispatch(params, payload) {
  * @public
  */
 export function subscribeToState(params, fn) {
-  document.addEventListener("store.update", (e) => {
+  actionValidation(params, states, storage);
+
+  emitters.storeEmitter.addEventListener("store.update", (e) => {
     const g = getState({ store: e.detail.store, state: params.state });
     if (params.store && params.state) {
       if (e.detail.action === params.state && e.detail.store === params.store) {
@@ -334,6 +387,7 @@ export function subscribeToState(params, fn) {
  * @public
  */
 export function initialActions(store, actions) {
+  storeValidator(store, storage);
   actions.forEach((item) => {
     store.state(item);
   });
@@ -370,6 +424,8 @@ export function middleware(store) {
  * @public
  */
 export function storageManager(params) {
+  actionValidation(params, states, storage);
+
   return {
     /**
      * merge state into storage
@@ -524,12 +580,24 @@ export function storageManager(params) {
 }
 
 /**
+ * add custom debuger
+ * @param {string} store store name
+ * @param {function} fn debugger callback function
+ * @public
+ */
+export function createDebuger(store, fn) {
+  storeValidator(store, storage);
+  debugCollection[store] = fn;
+}
+
+/**
  * initial biscuit storage
  * @param {object} params storage settings
  * @return {object} action list
  * @public
  */
 export function createBiscuit(params) {
+  creaateBiscuitValidator(params);
   newStorage(params.store.name, params.store.initial);
   const a = createActionsTo(params.store.name);
   const stateList = {};
@@ -543,6 +611,10 @@ export function createBiscuit(params) {
     for (let fn of params.middleware) {
       middle.add(fn);
     }
+  }
+
+  if (params.debuger) {
+    createDebuger(params.store.name, params.debuger);
   }
 
   return stateList;
