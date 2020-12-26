@@ -5,13 +5,19 @@
  * @license MIT
  */
 
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useRef, useState } from "react";
 import { subscribeToState, getState, dispatch } from "./store";
 import { sandbox, throttle, debounce } from "./utils";
 import { emitters } from "./emittes";
 
 const boxThrottle = sandbox(throttle);
 const boxDebounce = sandbox(debounce);
+
+/** to create parameters dependency */
+const createDep = (params, value) => {
+  params.actions[`${value.state}`] = value.store;
+  params.initial = { ...params.initial, ...getState(value) };
+};
 
 /**
  * subscriber react components
@@ -54,43 +60,71 @@ export default function subscribe(stateToProps, dispatchToProps) {
  * @return {import("react").ReactElement}
  * @public
  */
-export function observer(Element, deps = []) {
-  const d = deps.map((dep) => dep.state);
+export function observer(Element, deps) {
+  const params = { actions: {}, initial: {} };
+
+  /** check and create deps */
+  if (Array.isArray(deps)) {
+    for (let value of deps) {
+      createDep(params, value);
+    }
+  } else {
+    createDep(params, deps);
+  }
+
+  /** Create decorator */
   const Decorator = (props) => {
-    const [state, setState] = useState({});
+    const [state, setState] = useState(params.initial);
     useEffect(() => {
       const fn = (e) => {
-        if (d.includes(e.detail.action)) {
-          setState(e.detail.payload);
+        if (params.actions[`${e.detail.action}`]) {
+          setState({ ...state, ...e.detail.payload });
         }
       };
+
       emitters.storeEmitter.addEventListener("store.update", fn);
       return () => {
         emitters.storeEmitter.removeEventListener("store.update", fn);
       };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return <Element {...props} {...state} />;
   };
 
+  /** memoization decorator */
   return memo(Decorator);
 }
 
 /**
  * huck subscribe store state
  * @param {object} params state params
+ * @param {boolean} update if false excludes update
  * @return {object}  store state
  * @public
  */
-export function useSubscribeToState(params) {
-  const [state, setState] = useState(getState(params));
-  useEffect(() => {
-    subscribeToState(params, (instance) => {
-      setState(instance);
-    });
-  }, [params]);
 
-  return [state, (payload) => dispatch(params, payload)];
+export function useSubscribe(params, update = true) {
+  const [state, setState] = useState(null);
+  let value = useRef(getState(params));
+  useEffect(() => {
+    let cache = {};
+    subscribeToState(params, (instance) => {
+      const n = instance;
+
+      if (update) {
+        setState(instance);
+        return;
+      }
+
+      if (!(n in cache)) {
+        setState(null);
+      }
+      cache[n] = instance;
+      value.current = cache[n];
+    });
+  }, [params, update]);
+  return [state || value.current, (payload) => dispatch(params, payload)];
 }
 
 /**
@@ -100,7 +134,7 @@ export function useSubscribeToState(params) {
  * @public
  */
 export function useDispatch(params) {
-  return (payload) => dispatch(params, payload);
+  return (payload = {}) => dispatch(params, payload);
 }
 
 /**

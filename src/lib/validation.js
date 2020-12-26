@@ -39,12 +39,14 @@ export function creaateBiscuitValidator(params) {
     createLog(new Error(messages.actionsType), "error");
   }
 
-  if (!Array.isArray(params.middleware)) {
-    createLog(new Error(messages.middlewareNotArray), "error");
-  } else {
-    for (let key in params.middleware) {
-      if (typeof params.middleware[key] !== "function") {
-        createLog(new Error(messages.middlewareNotKeyFunc(key)), "error");
+  if (params.middleware) {
+    if (!Array.isArray(params.middleware)) {
+      createLog(new Error(messages.middlewareNotArray), "error");
+    } else {
+      for (let key in params.middleware) {
+        if (typeof params.middleware[key] !== "function") {
+          createLog(new Error(messages.middlewareNotKeyFunc(key)), "error");
+        }
       }
     }
   }

@@ -50,10 +50,8 @@ export const createLog = function (data, type = "error") {
 
 /**
  * active middleware functions
- * @param {string} action action name
- * @param {string} key store name
- * @param {object} payload change items
- * @param {object} store
+ * @param {object} context action context
+ * @param {function} fn callback
  * @private
  */
 async function activeMiddlewares(context, fn = () => null) {
@@ -61,6 +59,8 @@ async function activeMiddlewares(context, fn = () => null) {
     await middlewares[context.store].forEach((middle) => {
       middle(context, fn);
     });
+  } else {
+    fn(context.payload);
   }
 }
 
@@ -299,7 +299,6 @@ export function dispatch(params, payload) {
     voids.before = (fn) => {
       fn(prev);
     };
-
     /** initial middlewares */
     payload = await new Promise((resolve) => {
       activeMiddlewares(
@@ -606,7 +605,7 @@ export function createBiscuit(params) {
       stateList[key] = a.state(params.actions[key]);
     }
   }
-  if (params.middleware.length > 0) {
+  if (params.middleware && params.middleware.length > 0) {
     const middle = middleware(a);
     for (let fn of params.middleware) {
       middle.add(fn);

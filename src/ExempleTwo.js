@@ -4,19 +4,10 @@ import { modelInit, modelSuccess } from "./store/model/root";
 
 export default function ExempleTwo() {
   /** hook subscriber the state from store */
-  const [model, setModel] = useSubscribeToState(modelInit);
-  const [success] = useSubscribeToState(modelSuccess);
+  const clear = useDispatch(counterClear);
 
-  const handleMutable = () => {
-    setModel({ data: "hooks success!!!" });
-  };
+  /** clear timer */
+  const handleClear = () => clear({ counter: 0 });
 
-  return (
-    <div className="App">
-      <h2>TEST HOOKS: {model.data}</h2>
-      <p>id now: {model.id}</p>
-      <button onClick={handleMutable}>Клик</button>
-      <h3>fetch: {success.data?.title}</h3>
-    </div>
-  );
+  return <button onClick={handleClear}>clear</button>;
 }

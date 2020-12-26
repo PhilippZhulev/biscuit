@@ -109,7 +109,7 @@ button:focus {
   width: 1100px;
   border-radius: 6px;
   margin: "0 0 0 auto";
-  border: 1px dashed rgba(255, 255, 255, 1);
+  border: 1px solid rgba(255, 255, 255, 1);
 }
 
 .grid {
@@ -129,10 +129,193 @@ button:focus {
   height: 150px;
   border-radius: 6px;
   margin: 10px;
-  border: 1px dashed rgba(255, 255, 255, 1);
+  border: 1px solid rgba(255, 255, 255, 1);
 }
 
 .title {
   color: #fff;
   font-size: 12px;
+}
+
+/*
+Atom One Dark by Daniel Gamage
+Original One Dark Syntax theme from https://github.com/atom/one-dark-syntax
+base:    #282c34
+mono-1:  #abb2bf
+mono-2:  #818896
+mono-3:  #5c6370
+hue-1:   #56b6c2
+hue-2:   #61aeee
+hue-3:   #c678dd
+hue-4:   #98c379
+hue-5:   #e06c75
+hue-5-2: #be5046
+hue-6:   #d19a66
+hue-6-2: #e6c07b
+*/
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  line-height: 18px;
+  color: #abb2bf;
+  border-radius: 6px;
+  background: #282c34;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #5c6370;
+  font-style: italic;
+}
+
+.hljs-doctag,
+.hljs-keyword,
+.hljs-formula {
+  color: #c678dd;
+}
+
+.hljs-section,
+.hljs-name,
+.hljs-selector-tag,
+.hljs-deletion,
+.hljs-subst {
+  color: #e06c75;
+}
+
+.hljs-literal {
+  color: #56b6c2;
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta-string {
+  color: #98c379;
+}
+
+.hljs-built_in,
+.hljs-class .hljs-title {
+  color: #e6c07b;
+}
+
+.hljs-attr,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-type,
+.hljs-selector-class,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-number {
+  color: #d19a66;
+}
+
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-meta,
+.hljs-selector-id,
+.hljs-title {
+  color: #61aeee;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+
+.hljs-link {
+  text-decoration: underline;
+}
+
+.codeProvider {
+  width: 800px;
+  display: flex;
+  min-height: 300px;
+}
+
+.codeProvider .hljs {
+  height: 300px;
+}
+
+.codeProvider pre {
+  background: rgb(40 44 52);
+  display: block;
+  height: 300px;
+}
+
+.codeProviderRightPanel {
+  width: 120px;
+  background: rgb(233, 232, 232);
+  position: relative;
+  font-family: sans-serif;
+  font-size: 14px;
+  color: rgb(56, 42, 88);
+  padding-top: 50px;
+  z-index: 2;
+  box-sizing: border-box;
+  height: 362px;
+  margin-left: -15px;
+}
+
+.codeProviderRightPanel > div {
+  display: flex;
+  height: 50px;
+  padding: 0 15px;
+  border-bottom: 1px solid rgba(211, 211, 211, 1);
+}
+
+.codeProviderRightPanel > div:first-child {
+  border-top: 1px solid rgba(211, 211, 211, 1);
+}
+
+.codeProviderRightPanel > div:last-child {
+  border-bottom: 1px solid rgba(211, 211, 211, 1);
+}
+
+.codeProviderRightPanel > div > span {
+  margin: auto 0;
+}
+
+.layer {
+  padding: 45px;
+}
+
+.codeProviderPreview {
+  min-width: 620px;
+}
+
+.codeProviderTopPanel {
+  height: 50px;
+  width: 100%;
+  background: rgb(233, 232, 232);
+  margin-bottom: -15px;
+  display: flex;
+  position: relative;
+  font-family: sans-serif;
+  font-size: 14px;
+  color: rgb(56, 42, 88);
+  z-index: 2;
+}
+
+.codeProviderTopPanel > div {
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  border-right: 1px solid rgba(211, 211, 211, 1);
+  height: 100%;
+  padding: 0 15px;
+}
+
+.codeProviderTopPanel > div > span {
+  margin: auto;
+}
+
+.codeProviderTopPanel > div.active {
+  color: rgba(56, 42, 88, 0.5);
 }
