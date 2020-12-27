@@ -8,16 +8,16 @@
 import { emitters } from "./emittes";
 import { debugCollection } from "./debuger";
 import {
-  creaateBiscuitValidator,
-  actionValidation,
-  stateValidator,
-  storeValidator
+    creaateBiscuitValidator,
+    actionValidation,
+    stateValidator,
+    storeValidator
 } from "./validation";
 
 /** debug messages */
 const messages = {
-  writeError: "biscuit write error: Getter fields not writable.",
-  notKey: "biscuit read error: key not found."
+    writeError: "biscuit write error: Getter fields not writable.",
+    notKey: "biscuit read error: key not found."
 };
 
 /** storage instance */
@@ -38,14 +38,14 @@ let collections = {};
  * @public
  */
 export const createLog = function (data, type = "error") {
-  emitters.storeEmitter.dispatchEvent(
-    new CustomEvent("store.handle.debug", {
-      detail: {
-        data,
-        type
-      }
-    })
-  );
+    emitters.storeEmitter.dispatchEvent(
+        new CustomEvent("store.handle.debug", {
+            detail: {
+                data,
+                type
+            }
+        })
+    );
 };
 
 /**
@@ -55,13 +55,13 @@ export const createLog = function (data, type = "error") {
  * @private
  */
 async function activeMiddlewares(context, fn = () => null) {
-  if (middlewares[context.store]) {
-    await middlewares[context.store].forEach((middle) => {
-      middle(context, fn);
-    });
-  } else {
-    fn(context.payload);
-  }
+    if (middlewares[context.store]) {
+        await middlewares[context.store].forEach((middle) => {
+            middle(context, fn);
+        });
+    } else {
+        fn(context.payload);
+    }
 }
 
 /**
@@ -73,15 +73,15 @@ async function activeMiddlewares(context, fn = () => null) {
  * @private
  */
 function gettter(store, instance, key) {
-  if (key in store) {
-    return new Proxy(instance, {
-      set: () => {
-        createLog(new Error(messages.writeError), "error");
-      }
-    });
-  } else {
-    createLog(new Error(messages.notKey), "error");
-  }
+    if (key in store) {
+        return new Proxy(instance, {
+            set: () => {
+                createLog(new Error(messages.writeError), "error");
+            }
+        });
+    } else {
+        createLog(new Error(messages.notKey), "error");
+    }
 }
 
 /**
@@ -92,39 +92,39 @@ function gettter(store, instance, key) {
  * @private
  */
 function compareObject(firstState, lastState) {
-  let propInFirst = 0;
-  let propInLast = 0;
-  let prop;
+    let propInFirst = 0;
+    let propInLast = 0;
+    let prop;
 
-  if (firstState === lastState) {
-    return true;
-  }
+    if (firstState === lastState) {
+        return true;
+    }
 
-  if (
-    firstState == null ||
+    if (
+        firstState == null ||
     typeof firstState !== "object" ||
     lastState == null ||
     typeof lastState !== "object"
-  ) {
-    return false;
-  }
-
-  for (prop in firstState) {
-    propInFirst += 1;
-  }
-
-  for (prop in lastState) {
-    propInLast += 1;
-
-    if (
-      !(prop in firstState) ||
-      !compareObject(firstState[prop], lastState[prop])
     ) {
-      return false;
+        return false;
     }
-  }
 
-  return propInFirst === propInLast;
+    for (prop in firstState) {
+        propInFirst += 1;
+    }
+
+    for (prop in lastState) {
+        propInLast += 1;
+
+        if (
+            !(prop in firstState) ||
+      !compareObject(firstState[prop], lastState[prop])
+        ) {
+            return false;
+        }
+    }
+
+    return propInFirst === propInLast;
 }
 
 /**
@@ -134,8 +134,8 @@ function compareObject(firstState, lastState) {
  * @public
  */
 export function addStorage(key, instance) {
-  storeValidator(key, storage);
-  storage[key] = { ...storage[key], ...instance };
+    storeValidator(key, storage);
+    storage[key] = { ...storage[key], ...instance };
 }
 
 /**
@@ -145,7 +145,7 @@ export function addStorage(key, instance) {
  * @public
  */
 export function newStorage(key, initial) {
-  storage[key] = initial;
+    storage[key] = initial;
 }
 
 /**
@@ -155,8 +155,8 @@ export function newStorage(key, initial) {
  * @public
  */
 export function getStorage(key) {
-  storeValidator(key, storage);
-  return gettter(storage, { ...storage[key] }, key);
+    storeValidator(key, storage);
+    return gettter(storage, { ...storage[key] }, key);
 }
 
 /**
@@ -166,20 +166,20 @@ export function getStorage(key) {
  * @public
  */
 export function createActionsTo(key) {
-  storeValidator(key, storage);
-  return {
+    storeValidator(key, storage);
+    return {
     /** add state action name
      * @param {string} action action name
      * @public
      */
-    state: (action) => {
-      states[`"${action}"`] = { [key]: storage[key] };
-      const actionParams = { state: action, store: key };
-      return { ...actionParams };
-    },
-    /** store key */
-    store: key
-  };
+        state: (action) => {
+            states[`"${action}"`] = { [key]: storage[key] };
+            const actionParams = { state: action, store: key };
+            return { ...actionParams };
+        },
+        /** store key */
+        store: key
+    };
 }
 
 /**
@@ -189,21 +189,21 @@ export function createActionsTo(key) {
  * @public
  */
 export function stateCollection(...action) {
-  const collection = {};
-  return {
+    const collection = {};
+    return {
     /**
      * init state collection
      * @return {object} actions colecction
      * @public
      */
-    init: () => {
-      for (let i = 0; i < action.length; i++) {
-        collection[action[i].store].push({ ...action[i] });
-      }
+        init: () => {
+            for (let i = 0; i < action.length; i++) {
+                collection[action[i].store].push({ ...action[i] });
+            }
 
-      return collection;
-    }
-  };
+            return collection;
+        }
+    };
 }
 
 /**
@@ -212,9 +212,9 @@ export function stateCollection(...action) {
  * @public
  */
 export function combineStateCollections(...collection) {
-  collection.forEach((item) => {
-    collections = { ...collections, ...item.init() };
-  });
+    collection.forEach((item) => {
+        collections = { ...collections, ...item.init() };
+    });
 }
 
 /**
@@ -223,37 +223,37 @@ export function combineStateCollections(...collection) {
  * @public
  */
 export const getStateCollection = {
-  /**
+    /**
    * get all collections
    * @return {object} collections object
    * @public
    */
-  all: () => ({ ...collections }),
+    all: () => ({ ...collections }),
 
-  /**
+    /**
    * get collecton from store
    * @param {string} state state name
    * @return {array} state list
    * @public
    */
-  fromStore: (store) => ({ ...collections[store] }),
+    fromStore: (store) => ({ ...collections[store] }),
 
-  /**
+    /**
    * filtring collecton by state
    * @param {string} stateName state name
    * @return {array} state list
    * @public
    */
-  outOfState: (stateName) => {
-    stateValidator(stateName, states);
+    outOfState: (stateName) => {
+        stateValidator(stateName, states);
 
-    let out = null;
-    Object.keys(collections).forEach((key) => {
-      out = collections[key].filter(({ state }) => state === stateName);
-    });
+        let out = null;
+        Object.keys(collections).forEach((key) => {
+            out = collections[key].filter(({ state }) => state === stateName);
+        });
 
-    return out;
-  }
+        return out;
+    }
 };
 
 /**
@@ -264,10 +264,10 @@ export const getStateCollection = {
  * @public
  */
 export function getState(params) {
-  actionValidation(params, states, storage);
+    actionValidation(params, states, storage);
 
-  const act = states[`"${params.state}"`];
-  return gettter(act, { ...act[params.store] }, params.store);
+    const act = states[`"${params.state}"`];
+    return gettter(act, { ...act[params.store] }, params.store);
 }
 
 /**
@@ -278,82 +278,82 @@ export function getState(params) {
  * @public
  */
 export function dispatch(params, payload) {
-  actionValidation(params, states, storage);
+    actionValidation(params, states, storage);
 
-  /** init voids */
-  const voids = {
-    merge: () => {},
-    before: null,
-    after: null
-  };
+    /** init voids */
+    const voids = {
+        merge: () => {},
+        before: null,
+        after: null
+    };
 
-  (async function () {
-    const act = states[`"${params.state}"`][params.store];
-    const prev = { ...act };
+    (async function () {
+        const act = states[`"${params.state}"`][params.store];
+        const prev = { ...act };
 
-    /**
+        /**
      * call before state change
      * @param {function} fn callback
      * @public
      */
-    voids.before = (fn) => {
-      fn(prev);
-    };
-    /** initial middlewares */
-    payload = await new Promise((resolve) => {
-      activeMiddlewares(
-        {
-          action: params.state,
-          store: params.store,
-          payload: payload,
-          state: act
-        },
-        (newPayload) => {
-          resolve(newPayload);
-        }
-      );
-    });
+        voids.before = (fn) => {
+            fn(prev);
+        };
+        /** initial middlewares */
+        payload = await new Promise((resolve) => {
+            activeMiddlewares(
+                {
+                    action: params.state,
+                    store: params.store,
+                    payload: payload,
+                    state: act
+                },
+                (newPayload) => {
+                    resolve(newPayload);
+                }
+            );
+        });
 
-    /** update state data */
-    states[`"${params.state}"`][params.store] = {
-      ...act,
-      ...payload
-    };
+        /** update state data */
+        states[`"${params.state}"`][params.store] = {
+            ...act,
+            ...payload
+        };
 
-    /** create update event */
-    emitters.storeEmitter.dispatchEvent(
-      new CustomEvent("store.update", {
-        detail: {
-          action: params.state,
-          store: params.store,
-          payload: states[`"${params.state}"`][params.store]
-        }
-      })
-    );
+        /** create update event */
+        emitters.storeEmitter.dispatchEvent(
+            new CustomEvent("store.update", {
+                detail: {
+                    action: params.state,
+                    store: params.store,
+                    payload: states[`"${params.state}"`][params.store]
+                }
+            })
+        );
 
-    /**
+        /**
      * call after state change
      * @param {function} fn callback
      * @public
      */
-    voids.after = (fn) => {
-      fn({ ...act });
-    };
+        voids.after = (fn) => {
+            fn({ ...act });
+        };
 
-    /**
+        /**
      * merge state into storage
      * @public
      */
-    voids.merge = () => {
-      if (`"${params.state}"` in states) {
-        storage[params.store] = act;
-      }
+        voids.merge = () => {
+            if (`"${params.state}"` in states) {
+                storage[params.store] = act;
+            }
 
-      return voids;
-    };
-  })();
+            return voids;
+        };
+    })();
 
-  return voids;
+    return voids;
 }
 
 /**
@@ -363,20 +363,20 @@ export function dispatch(params, payload) {
  * @public
  */
 export function subscribeToState(params, fn) {
-  actionValidation(params, states, storage);
+    actionValidation(params, states, storage);
 
-  emitters.storeEmitter.addEventListener("store.update", async (e) => {
-    const g = getState({ store: e.detail.store, state: params.state });
-    if (params.store && params.state) {
-      if (e.detail.action === params.state && e.detail.store === params.store) {
-        await fn(g);
-      }
-    } else if (params.state) {
-      if (e.detail.action === params.state) {
-        await fn(g);
-      }
-    }
-  });
+    emitters.storeEmitter.addEventListener("store.update", async (e) => {
+        const g = getState({ store: e.detail.store, state: params.state });
+        if (params.store && params.state) {
+            if (e.detail.action === params.state && e.detail.store === params.store) {
+                await fn(g);
+            }
+        } else if (params.state) {
+            if (e.detail.action === params.state) {
+                await fn(g);
+            }
+        }
+    });
 }
 
 /**
@@ -386,10 +386,10 @@ export function subscribeToState(params, fn) {
  * @public
  */
 export function initialActions(store, actions) {
-  storeValidator(store, storage);
-  actions.forEach((item) => {
-    store.state(item);
-  });
+    storeValidator(store, storage);
+    actions.forEach((item) => {
+        store.state(item);
+    });
 }
 
 /**
@@ -399,21 +399,21 @@ export function initialActions(store, actions) {
  * @public
  */
 export function middleware(store) {
-  const s = store.store;
-  return {
+    const s = store.store;
+    return {
     /**
      * Add middleware function
      * @param {function} fn middle function
      * @public
      */
-    add: (fn) => {
-      if (middlewares[s]) {
-        middlewares[s].push(fn);
-      } else {
-        middlewares[s] = [fn];
-      }
-    }
-  };
+        add: (fn) => {
+            if (middlewares[s]) {
+                middlewares[s].push(fn);
+            } else {
+                middlewares[s] = [fn];
+            }
+        }
+    };
 }
 
 /**
@@ -423,159 +423,159 @@ export function middleware(store) {
  * @public
  */
 export function biscuitManager(params) {
-  actionValidation(params, states, storage);
+    actionValidation(params, states, storage);
 
-  return {
+    return {
     /**
      * merge state into storage
      * @public
      */
-    merge: () => {
-      storage[params.store] = {
-        ...storage[params.store],
-        ...states[`"${params.state}"`][params.store]
-      };
-    },
+        merge: () => {
+            storage[params.store] = {
+                ...storage[params.store],
+                ...states[`"${params.state}"`][params.store]
+            };
+        },
 
-    /**
+        /**
      * pull state into storage
      * @public
      */
-    pull: () => {
-      states[`"${params.state}"`][params.store] = {
-        ...states[`"${params.state}"`][params.store],
-        ...storage[params.store]
-      };
-    },
+        pull: () => {
+            states[`"${params.state}"`][params.store] = {
+                ...states[`"${params.state}"`][params.store],
+                ...storage[params.store]
+            };
+        },
 
-    /**
+        /**
      * substitute storage into state
      * @public
      */
-    substituteStore: () => {
-      storage[params.store] = { ...storage[`"${params.state}"`][params.store] };
-    },
+        substituteStore: () => {
+            storage[params.store] = { ...storage[`"${params.state}"`][params.store] };
+        },
 
-    /**
+        /**
      * substitute storage into state
      * @public
      */
-    substituteState: () => {
-      states[`"${params.state}"`][params.store] = { ...storage[params.store] };
-    },
+        substituteState: () => {
+            states[`"${params.state}"`][params.store] = { ...storage[params.store] };
+        },
 
-    /**
+        /**
      * combine states
      * @param {string} state
      * @public
      */
-    mergeState: (state) => {
-      states[state][params.store] = {
-        ...states[state][params.store],
-        ...states[`"${params.state}"`][params.store]
-      };
-    },
+        mergeState: (state) => {
+            states[state][params.store] = {
+                ...states[state][params.store],
+                ...states[`"${params.state}"`][params.store]
+            };
+        },
 
-    /**
+        /**
      * removes the repository and its copies from all states
      * @public
      */
-    remove: () => {
-      delete storage[params.store];
-      Object.keys(states[`"${params.state}"`]).forEach((item) => {
-        if (item === params.store) {
-          delete states[`"${params.state}"`][params.store];
-        }
-      });
-    },
+        remove: () => {
+            delete storage[params.store];
+            Object.keys(states[`"${params.state}"`]).forEach((item) => {
+                if (item === params.store) {
+                    delete states[`"${params.state}"`][params.store];
+                }
+            });
+        },
 
-    /**
+        /**
      * remove empty states
      * @public
      */
-    removeEmptyState: () => {
-      Object.keys(states[`"${params.state}"`]).forEach((item) => {
-        if (Object.keys(item).length === 0) {
-          delete states[`"${params.state}"`];
-        }
-      });
-    },
+        removeEmptyState: () => {
+            Object.keys(states[`"${params.state}"`]).forEach((item) => {
+                if (Object.keys(item).length === 0) {
+                    delete states[`"${params.state}"`];
+                }
+            });
+        },
 
-    /**
+        /**
      * compare two state
      * WARNING: states should not contain methods
      * @param {string} state state name
      * @return {bool}
      * @public
      */
-    compareStates: (state) => {
-      return compareObject(
-        states[`"${params.state}"`][params.store],
-        states[`"${state}"`][params.store]
-      );
-    },
+        compareStates: (state) => {
+            return compareObject(
+                states[`"${params.state}"`][params.store],
+                states[`"${state}"`][params.store]
+            );
+        },
 
-    /**
+        /**
      * compare state and store
      * WARNING: states should not contain methods
      * @return {bool}
      * @public
      */
-    compareWithState: () => {
-      return compareObject(
-        storage[params.store],
-        states[`"${params.state}"`][params.store]
-      );
-    },
+        compareWithState: () => {
+            return compareObject(
+                storage[params.store],
+                states[`"${params.state}"`][params.store]
+            );
+        },
 
-    /**
+        /**
      * compare state and instance object
      * WARNING: states should not contain methods
      * @param {object} instance object instance
      * @return {bool}
      * @public
      */
-    compareStateWithInstance: (instance) => {
-      return compareObject(states[`"${params.state}"`][params.store], instance);
-    },
+        compareStateWithInstance: (instance) => {
+            return compareObject(states[`"${params.state}"`][params.store], instance);
+        },
 
-    /**
+        /**
      * compare store and instance object
      * WARNING: states should not contain methods
      * @param {object} instance object instance
      * @return {bool}
      * @public
      */
-    compareStoreWithInstance: (instance) => {
-      return compareObject(storage[params.store], instance);
-    },
+        compareStoreWithInstance: (instance) => {
+            return compareObject(storage[params.store], instance);
+        },
 
-    /**
+        /**
      * clone storage and state
      * @param {string} name new name
      * @public
      */
-    clone: (name) => {
-      storage[name] = { ...storage[params.store] };
-      states[`"${params.state}"`][name] = {
-        ...states[`"${params.state}"`][params.store]
-      };
-    },
+        clone: (name) => {
+            storage[name] = { ...storage[params.store] };
+            states[`"${params.state}"`][name] = {
+                ...states[`"${params.state}"`][params.store]
+            };
+        },
 
-    /**
+        /**
      * update state
      * @public
      */
-    update: () => {
-      dispatch(params, {});
-    },
+        update: () => {
+            dispatch(params, {});
+        },
 
-    /**
+        /**
      * input params
      * @public
      */
-    props: params
-  };
+        props: params
+    };
 }
 
 /**
@@ -585,8 +585,8 @@ export function biscuitManager(params) {
  * @public
  */
 export function createDebuger(store, fn) {
-  storeValidator(store, storage);
-  debugCollection[store] = fn;
+    storeValidator(store, storage);
+    debugCollection[store] = fn;
 }
 
 /**
@@ -596,25 +596,25 @@ export function createDebuger(store, fn) {
  * @public
  */
 export function createBiscuit(params) {
-  creaateBiscuitValidator(params);
-  newStorage(params.store.name, params.store.initial);
-  const a = createActionsTo(params.store.name);
-  const stateList = {};
-  if (params.actions) {
-    for (let key in params.actions) {
-      stateList[key] = a.state(params.actions[key]);
+    creaateBiscuitValidator(params);
+    newStorage(params.store.name, params.store.initial);
+    const a = createActionsTo(params.store.name);
+    const stateList = {};
+    if (params.actions) {
+        for (let key in params.actions) {
+            stateList[key] = a.state(params.actions[key]);
+        }
     }
-  }
-  if (params.middleware && params.middleware.length > 0) {
-    const middle = middleware(a);
-    for (let fn of params.middleware) {
-      middle.add(fn);
+    if (params.middleware && params.middleware.length > 0) {
+        const middle = middleware(a);
+        for (let fn of params.middleware) {
+            middle.add(fn);
+        }
     }
-  }
 
-  if (params.debuger) {
-    createDebuger(params.store.name, params.debuger);
-  }
+    if (params.debuger) {
+        createDebuger(params.store.name, params.debuger);
+    }
 
-  return stateList;
+    return stateList;
 }

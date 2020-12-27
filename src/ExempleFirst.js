@@ -6,46 +6,46 @@ import { modelInit } from "./store/model/root";
 
 /** subscribe to state */
 subscribeToState(modelInit, (payload) => {
-  console.log(payload);
+    console.log(payload);
 });
 
 function ExempleFirst({ id, dot, dispatchInitModel }) {
-  const [count, setCount] = useState(0);
+    const [count, setCount] = useState(0);
 
-  useEffect(() => {
-    if (count > 0) {
-      /** update state */
-      dispatchInitModel({ id: count }).before((state) => {
-        console.log(state);
-      });
-    }
-  }, [count, dispatchInitModel]);
+    useEffect(() => {
+        if (count > 0) {
+            /** update state */
+            dispatchInitModel({ id: count }).before((state) => {
+                console.log(state);
+            });
+        }
+    }, [count, dispatchInitModel]);
 
-  const handleCount = () => {
-    setCount(count + 1);
-  };
+    const handleCount = () => {
+        setCount(count + 1);
+    };
 
-  return (
-    <div className="App">
-      <h1>TEST STORAGE</h1>
-      <h2>id: {id}</h2>
-      <button onClick={handleCount}>Клик</button>
-      <div>{dot}</div>
-    </div>
-  );
+    return (
+        <div className="App">
+            <h1>TEST STORAGE</h1>
+            <h2>id: {id}</h2>
+            <button onClick={handleCount}>Клик</button>
+            <div>{dot}</div>
+        </div>
+    );
 }
 
 /** state params to props */
 const stateToProps = () => {
-  const model = getState(modelInit);
-  return {
-    id: model.id,
-    dot: model.dot
-  };
+    const model = getState(modelInit);
+    return {
+        id: model.id,
+        dot: model.dot
+    };
 };
 /** dispatch to props */
 const dispatchToProps = {
-  dispatchInitModel: (params) => dispatch(modelInit, params)
+    dispatchInitModel: (params) => dispatch(modelInit, params)
 };
 
 /** subscribe component to store */

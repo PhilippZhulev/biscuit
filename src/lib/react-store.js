@@ -15,8 +15,8 @@ const boxDebounce = sandbox(debounce);
 
 /** to create parameters dependency */
 const createDep = (params, value) => {
-  params.actions[`${value.state}`] = value.store;
-  params.initial = { ...params.initial, ...getState(value) };
+    params.actions[`${value.state}`] = value.store;
+    params.initial = { ...params.initial, ...getState(value) };
 };
 
 /**
@@ -27,30 +27,30 @@ const createDep = (params, value) => {
  * @public
  */
 export default function subscribe(stateToProps, dispatchToProps) {
-  return (Element) => {
-    return class extends React.PureComponent {
-      /** mount update event */
-      componentDidMount() {
-        emitters.storeEmitter.addEventListener("store.update", () =>
-          this.forceUpdate()
-        );
-      }
+    return (Element) => {
+        return class extends React.PureComponent {
+            /** mount update event */
+            componentDidMount() {
+                emitters.storeEmitter.addEventListener("store.update", () =>
+                    this.forceUpdate()
+                );
+            }
 
-      /** unmount update event */
-      componentWillUnmount() {
-        emitters.storeEmitter.removeEventListener("store.update", () =>
-          this.forceUpdate()
-        );
-      }
+            /** unmount update event */
+            componentWillUnmount() {
+                emitters.storeEmitter.removeEventListener("store.update", () =>
+                    this.forceUpdate()
+                );
+            }
 
-      /** proxy element */
-      render() {
-        return (
-          <Element {...this.props} {...stateToProps()} {...dispatchToProps} />
-        );
-      }
+            /** proxy element */
+            render() {
+                return (
+                    <Element {...this.props} {...stateToProps()} {...dispatchToProps} />
+                );
+            }
+        };
     };
-  };
 }
 
 /**
@@ -61,39 +61,39 @@ export default function subscribe(stateToProps, dispatchToProps) {
  * @public
  */
 export function observer(Element, deps) {
-  const params = { actions: {}, initial: {} };
+    const params = { actions: {}, initial: {} };
 
-  /** check and create deps */
-  if (Array.isArray(deps)) {
-    for (let value of deps) {
-      createDep(params, value);
-    }
-  } else {
-    createDep(params, deps);
-  }
-
-  /** Create decorator */
-  const Decorator = (props) => {
-    const [state, setState] = useState(params.initial);
-    useEffect(() => {
-      const fn = (e) => {
-        if (params.actions[`${e.detail.action}`]) {
-          setState({ ...state, ...e.detail.payload });
+    /** check and create deps */
+    if (Array.isArray(deps)) {
+        for (let value of deps) {
+            createDep(params, value);
         }
-      };
+    } else {
+        createDep(params, deps);
+    }
 
-      emitters.storeEmitter.addEventListener("store.update", fn);
-      return () => {
-        emitters.storeEmitter.removeEventListener("store.update", fn);
-      };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    /** Create decorator */
+    const Decorator = (props) => {
+        const [state, setState] = useState(params.initial);
+        useEffect(() => {
+            const fn = (e) => {
+                if (params.actions[`${e.detail.action}`]) {
+                    setState({ ...state, ...e.detail.payload });
+                }
+            };
 
-    return <Element {...props} {...state} />;
-  };
+            emitters.storeEmitter.addEventListener("store.update", fn);
+            return () => {
+                emitters.storeEmitter.removeEventListener("store.update", fn);
+            };
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, []);
 
-  /** memoization decorator */
-  return memo(Decorator);
+        return <Element {...props} {...state} />;
+    };
+
+    /** memoization decorator */
+    return memo(Decorator);
 }
 
 /**
@@ -105,26 +105,26 @@ export function observer(Element, deps) {
  */
 
 export function useSubscribe(params, update = true) {
-  const [state, setState] = useState(null);
-  let value = useRef(getState(params));
-  useEffect(() => {
-    let cache = {};
-    subscribeToState(params, (instance) => {
-      const n = instance;
+    const [state, setState] = useState(null);
+    let value = useRef(getState(params));
+    useEffect(() => {
+        let cache = {};
+        subscribeToState(params, (instance) => {
+            const n = instance;
 
-      if (update) {
-        setState(instance);
-        return;
-      }
+            if (update) {
+                setState(instance);
+                return;
+            }
 
-      if (!(n in cache)) {
-        setState(null);
-      }
-      cache[n] = instance;
-      value.current = cache[n];
-    });
-  }, [params, update]);
-  return [state || value.current, (payload) => dispatch(params, payload)];
+            if (!(n in cache)) {
+                setState(null);
+            }
+            cache[n] = instance;
+            value.current = cache[n];
+        });
+    }, [params, update]);
+    return [state || value.current, (payload) => dispatch(params, payload)];
 }
 
 /**
@@ -134,7 +134,7 @@ export function useSubscribe(params, update = true) {
  * @public
  */
 export function useDispatch(params) {
-  return (payload = {}) => dispatch(params, payload);
+    return (payload = {}) => dispatch(params, payload);
 }
 
 /**
@@ -145,7 +145,7 @@ export function useDispatch(params) {
  * @public
  */
 export function useDispatchThrottle(params, count) {
-  return (payload) => boxThrottle.run(dispatch, count)(params, payload);
+    return (payload) => boxThrottle.run(dispatch, count)(params, payload);
 }
 
 /**
@@ -156,5 +156,5 @@ export function useDispatchThrottle(params, count) {
  * @public
  */
 export function useDispatchDebounce(params, count) {
-  return (payload) => boxDebounce.run(dispatch, count)(params, payload);
+    return (payload) => boxDebounce.run(dispatch, count)(params, payload);
 }

@@ -11,10 +11,10 @@ const model = createActionsTo("model");
 const middle = middleware(model);
 
 middle.add((action, payload, state) => {
-  if (typeof payload.id === "number") {
-    console.log(action);
-    state.dot += ".";
-  }
+    if (typeof payload.id === "number") {
+        console.log(action);
+        state.dot += ".";
+    }
 });
 
 middle.add(slide.connect);

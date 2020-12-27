@@ -1,3 +1,3 @@
 export const emitters = {
-  storeEmitter: new EventTarget()
+    storeEmitter: new EventTarget()
 };

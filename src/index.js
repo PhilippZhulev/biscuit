@@ -7,9 +7,9 @@ import ReactDOM from "react-dom";
 import "./styles.css";
 import { modelInit } from "./store/model/root";
 import {
-  //combineStateCollections,
-  biscuitManager,
-  subscribeToState
+    //combineStateCollections,
+    biscuitManager,
+    subscribeToState
 } from "./lib/store";
 import Main from "./docs/Main";
 
@@ -18,7 +18,7 @@ import Main from "./docs/Main";
 const manager = biscuitManager(modelInit);
 
 subscribeToState(manager.props, (payload) => {
-  console.log("store === state", manager.compareWithState());
+    console.log("store === state", manager.compareWithState());
 });
 
 // const handleMerge = () => {
@@ -38,14 +38,14 @@ subscribeToState(manager.props, (payload) => {
 
 const rootElement = document.getElementById("root");
 ReactDOM.render(
-  <React.StrictMode>
-    {/* <button onClick={handleMerge}>слить в храилище</button>
+    <React.StrictMode>
+        {/* <button onClick={handleMerge}>слить в храилище</button>
     <button onClick={handlePull}>залить в состояние</button>
     <button onClick={handleRemove}>удалить хранилище</button>
     <ExempleFirst />
     <ExempleTwo />
     <ExempleTree /> */}
-    <Main />
-  </React.StrictMode>,
-  rootElement
+        <Main />
+    </React.StrictMode>,
+    rootElement
 );
