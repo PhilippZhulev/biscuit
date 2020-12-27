@@ -365,15 +365,15 @@ export function dispatch(params, payload) {
 export function subscribeToState(params, fn) {
   actionValidation(params, states, storage);
 
-  emitters.storeEmitter.addEventListener("store.update", (e) => {
+  emitters.storeEmitter.addEventListener("store.update", async (e) => {
     const g = getState({ store: e.detail.store, state: params.state });
     if (params.store && params.state) {
       if (e.detail.action === params.state && e.detail.store === params.store) {
-        fn(g);
+        await fn(g);
       }
     } else if (params.state) {
       if (e.detail.action === params.state) {
-        fn(g);
+        await fn(g);
       }
     }
   });
@@ -422,7 +422,7 @@ export function middleware(store) {
  * @return {object} voids
  * @public
  */
-export function storageManager(params) {
+export function biscuitManager(params) {
   actionValidation(params, states, storage);
 
   return {

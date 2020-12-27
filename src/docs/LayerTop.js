@@ -1,8 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import Highlight from "react-highlight-updated";
 
 export default function LayerTop() {
-  const [state, setState] = useState({ view: 0, category: 0 });
+  const frameRef = useRef(null);
+  const [state, setState] = useState({ view: 0, category: 0, lines: 0 });
+
+  useEffect(() => {
+    if (frameRef.current) {
+      const h = frameRef.current.scrollHeight;
+      setState({
+        ...state,
+        lines: Math.ceil(h / 18)
+      });
+    }
+  }, [frameRef.current]);
 
   const handelCheckPreviev = (key, index) => {
     setState({ ...state, [key]: index });
@@ -23,10 +34,16 @@ export default function LayerTop() {
               <span>slide</span>
             </div>
           </div>
-          <pre>
-            {state.view === 0 && state.category === 0 ? (
-              <Highlight language="javascript">
-                {`
+          <div ref={frameRef} className={"codeFlexWrapper"}>
+            <section className={"codeLines"}>
+              {new Array(state.lines).fill(0).map((_, i) => {
+                return <div key={i}>{i}</div>;
+              })}
+            </section>
+            <pre>
+              {state.view === 0 && state.category === 0 ? (
+                <Highlight language="javascript">
+                  {`
 import { createBiscuit } from "@biscuit-store/core";
 
 export const { counterAdd } = createBiscuit({
@@ -39,58 +56,57 @@ export const { counterAdd } = createBiscuit({
   }
 });
                 `}
-              </Highlight>
-            ) : null}
-            {state.view === 1 && state.category === 0 ? (
-              <Highlight language="javascript">
-                {`
+                </Highlight>
+              ) : null}
+              {state.view === 1 && state.category === 0 ? (
+                <Highlight language="javascript">
+                  {`
 import React from "react";
-import { observer} from "@biscuit-store/core";
+import { useSubscribe } from "@biscuit-store/react";
 import { counterAdd } from "./store/root";
 
-const App = observer(({ value }) => {
+export const Counter = () => {
+  const [count, dispatchCount] = useSubscribe(counterAdd);
+  const handleAdd = () => {
+    dispatchCount({ value: count.value + 1 });
+  };
+
+  return <button onClick={handleAdd}>Add</button>;
+};
+
+              `}
+                </Highlight>
+              ) : null}
+              {state.view === 2 && state.category === 0 ? (
+                <Highlight language="javascript">
+                  {`
+import React from "react";
+import { observer } from "@biscuit-store/react";
+import { counterAdd } from "./store/root";
+
+const CounterOutput = observer(({ value }) => {
   return (
     <div className="counter">
       <p>counter: {value}</p>
-      <Counter />
     </div>
   );
 }, counterAdd);
 
-          `}
-              </Highlight>
-            ) : null}
-            {state.view === 2 && state.category === 0 ? (
-              <Highlight language="javascript">
-                {`
-import React, { useEffect } from "react";
-import { useSubscribeToState } from "@biscuit-store/core";
-import { counterAdd } from "./store/root";
-
-export default function Counter() {
-  const [count, setCount] = useSubscribe(counterAdd);
-
-  const handleCounterStart = () => {
-    setCount({ value: count.value + 1 });
-  };
-
-  return <button onClick={handleCounterStart}>Add</button>;
-};
-
-          `}
-              </Highlight>
-            ) : null}
-          </pre>
+              `}
+                </Highlight>
+              ) : null}
+            </pre>
+          </div>
         </section>
         <section className={"codeProviderRightPanel"}>
           <div onClick={() => handelCheckPreviev("view", 0)}>
             <span>store/root.js</span>
           </div>
           <div onClick={() => handelCheckPreviev("view", 1)}>
-            <span>App.jsx</span>
+            <span>Counter.jsx</span>
           </div>
           <div onClick={() => handelCheckPreviev("view", 2)}>
-            <span>Counter.jsx</span>
+            <span>App.jsx</span>
           </div>
         </section>
       </div>

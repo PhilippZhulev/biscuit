@@ -1,38 +1,40 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
+// import ExempleFirst from "./ExempleFirst";
+// import ExempleTwo from "./ExempleTwo";
+// import ExempleTree from "./ExempleTree";
 import "./styles.css";
+import { modelInit } from "./store/model/root";
+import {
+  //combineStateCollections,
+  biscuitManager,
+  subscribeToState
+} from "./lib/store";
+import Main from "./docs/Main";
 
-import { createBiscuit } from "./lib/store";
-import { observer, useSubscribe } from "./lib/react-store";
+//combineStateCollections(modelStateCollection);
 
-const { counterAdd } = createBiscuit({
-  store: {
-    name: "counter",
-    initial: { value: 0 }
-  },
-  actions: {
-    counterAdd: "COUNTER_ADD"
-  }
+const manager = biscuitManager(modelInit);
+
+subscribeToState(manager.props, (payload) => {
+  console.log("store === state", manager.compareWithState());
 });
 
-const Counter = () => {
-  const [count, setCount] = useSubscribe(counterAdd);
+// const handleMerge = () => {
+//   manager.merge();
+//   manager.update();
+// };
 
-  const handleCounterStart = () => {
-    setCount({ value: count.value + 1 });
-  };
+// const handlePull = () => {
+//   manager.pull();
+//   manager.update();
+// };
 
-  return <button onClick={handleCounterStart}>Add</button>;
-};
-
-const App = observer(({ value }) => {
-  return (
-    <div className="counter">
-      <p>counter: {value}</p>
-    </div>
-  );
-}, counterAdd);
+// const handleRemove = () => {
+//   manager.remove();
+//   manager.update();
+// };
 
 const rootElement = document.getElementById("root");
 ReactDOM.render(
@@ -43,8 +45,7 @@ ReactDOM.render(
     <ExempleFirst />
     <ExempleTwo />
     <ExempleTree /> */}
-    <App />
-    <Counter />
+    <Main />
   </React.StrictMode>,
   rootElement
 );
