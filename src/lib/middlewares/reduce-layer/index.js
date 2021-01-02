@@ -1,4 +1,4 @@
-import { actionCallbackValidator } from "../../validation";
+import { actionCallbackValidator } from "../../services/validation";
 
 export function reduceLayer() {
     const connectors = [];

@@ -1,6 +1,7 @@
 {
   "name": "react",
   "version": "1.0.0",
+  "license": "MIT",
   "description": "React example starter project",
   "keywords": [
     "react",
@@ -71,7 +72,8 @@
   "scripts": {
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
-    "test": "node scripts/test.js --env=jsdom"
+    "test:react": "node scripts/test.js --env=jsdom",
+    "test": "jest"
   },
   "browserslist": [
     ">0.2%",

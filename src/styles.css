@@ -258,8 +258,13 @@ hue-6-2: #e6c07b
 .codeProviderRightPanel > div {
   display: flex;
   height: 50px;
+  cursor: pointer;
   padding: 0 15px;
   border-bottom: 1px solid rgba(211, 211, 211, 1);
+}
+
+.codeProviderRightPanel > div.active {
+  box-shadow: inset 4px 0 0 0 rgb(123 72 239);
 }
 
 .codeProviderRightPanel > div:first-child {
@@ -297,10 +302,15 @@ hue-6-2: #e6c07b
 .codeProviderTopPanel > div {
   display: flex;
   align-content: center;
+  cursor: pointer;
   justify-content: center;
   border-right: 1px solid rgba(211, 211, 211, 1);
   height: 100%;
   padding: 0 15px;
+}
+
+.codeProviderTopPanel > div.active {
+  box-shadow: inset 0 -4px 0 0 rgb(123 72 239);
 }
 
 .codeProviderTopPanel > div > span {

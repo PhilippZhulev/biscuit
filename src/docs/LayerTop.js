@@ -32,6 +32,24 @@ const leftMenuData = [
     },
 ]
 
+const codeData = [
+    {
+        view: 0,
+        category: 0,
+        data: startReactCodeInit
+    },
+    {
+        view: 1,
+        category: 0,
+        data: startReactCodeCount
+    },
+    {
+        view: 2,
+        category: 0,
+        data: startReactCodeObserver
+    },
+]
+
 export default function LayerTop() {
     const frameRef = useRef(null);
     const [state, setState] = useState({ view: 0, category: 0, lines: 0 });
@@ -49,7 +67,7 @@ export default function LayerTop() {
     }, [frameRef]);
 
     const handelCheckPreviev = (key, index) => {
-        setState({ ...state, [key]: index });
+        setState((s) => ({ ...s, [key]: index }));
     };
 
     return (
@@ -59,7 +77,11 @@ export default function LayerTop() {
                     <div className={"codeProviderTopPanel"}>
                         {
                             topMenuData.map((item) => (
-                                <div key={item.id} onClick={() => handelCheckPreviev("category", item.id)}>
+                                <div
+                                    key={item.id}
+                                    className={item.id === state.category ? "active" : ""}
+                                    onClick={() => handelCheckPreviev("category", item.id)}
+                                >
                                     <span>{item.title}</span>
                                 </div>
                             ))
@@ -72,28 +94,30 @@ export default function LayerTop() {
                             })}
                         </section>
                         <pre>
-                            {state.view === 0 && state.category === 0 ? (
-                                <Highlight language="javascript">
-                                    {startReactCodeInit}
-                                </Highlight>
-                            ) : null}
-                            {state.view === 1 && state.category === 0 ? (
-                                <Highlight language="javascript">
-                                    {startReactCodeCount}
-                                </Highlight>
-                            ) : null}
-                            {state.view === 2 && state.category === 0 ? (
-                                <Highlight language="javascript">
-                                    {startReactCodeObserver}
-                                </Highlight>
-                            ) : null}
+                            {
+                                codeData.map((item, i) => {
+                                    if (item.view === state.view && item.category === state.category) {
+                                        return (
+                                            <Highlight key={i} language="javascript">
+                                                {item.data}
+                                            </Highlight>
+                                        )           
+                                    }
+                                  
+                                    return null
+                                })
+                            }
                         </pre>
                     </div>
                 </section>
                 <section className={"codeProviderRightPanel"}>
                     {
                         leftMenuData.map((item) => (
-                            <div key={item.id} onClick={() => handelCheckPreviev("view", item.id)}>
+                            <div
+                                key={item.id}
+                                className={item.id === state.view ? "active" : ""}
+                                onClick={() => handelCheckPreviev("view", item.id)}
+                            >
                                 <span>{item.title}</span> 
                             </div>
                         ))
