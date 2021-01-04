@@ -74,7 +74,7 @@ it("check dispatch params type error", () => {
     try {
         dispatch([], { value: 5 });
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> dispatch error: field \"params\" should be a \"object\".");
+        expect(e.message).toEqual("Biscuit -> dispatch error: store \"undefined\" not found.");
     }
 }); 
 
@@ -82,14 +82,6 @@ it("check dispatch params.state not found", () => {
     try {
         dispatch({state: "TEST/DIS/ACTION-NOT", store: "testDispatchStore"}, { value: 5 });
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> dispatch error: store \"\"TEST/DIS/ACTION-NOT\"\" not found.");
-    }
-}); 
-
-it("check dispatch params.store not found", () => {
-    try {
-        dispatch({state: "TEST/DIS/ACTION-1", store: "NULL"}, { value: 5 });
-    } catch (e) {
-        expect(e.message).toEqual("biscuit -> dispatch error: store \"NULL\" not found.");
+        expect(e.message).toEqual("Biscuit -> dispatch error: state \"TEST/DIS/ACTION-NOT\" not found.");
     }
 }); 

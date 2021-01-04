@@ -21,7 +21,7 @@ it("get storage test write error", () => {
     try {
         getStorage("testStore").value = "write"
     } catch (e) {
-        expect(e.message).toEqual("biscuit write error: Getter field \"testStore\" not writable.");
+        expect(e.message).toEqual("Cannot assign to read only property 'value' of object '#<Object>'");
     }
 });
 
@@ -39,7 +39,7 @@ it("new storage name type", () => {
     try {
         newStorage(1)
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> newStorage error: field \"name\" should be a \"string\".");
+        expect(e.message).toEqual("biscuit newStorage error: storage name is not a string.");
     }
 });
 
@@ -48,7 +48,7 @@ it("new storage initial type", () => {
     try {
         newStorage("newTestStorage-1", [])
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> newStorage error: field \"initial\" should be a \"object\".");
+        expect(e.message).toEqual("Biscuit -> newStorage error: field should be a \"object\".");
     }
 });
 
@@ -57,7 +57,7 @@ it("new storage exist key", () => {
         newStorage("newTestStorage-exist")
         newStorage("newTestStorage-exist")
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> newStorage error: the \"newTestStorage-exist\" repository already exists.");
+        expect(e.message).toEqual("Biscuit -> newStorage error: the \"newTestStorage-exist\" repository already exists.");
     }
 });
 
@@ -65,7 +65,7 @@ it("get storage not exist key", () => {
     try {
         getStorage("newTestStorage-not-exist")
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> getStorage error: store \"newTestStorage-not-exist\" not found.");
+        expect(e.message).toEqual("Biscuit -> getStorage error: store \"newTestStorage-not-exist\" not found.");
     }
 });
 
@@ -74,7 +74,7 @@ it("add storage not exist instance", () => {
         newStorage("newTestStorage-not-exist-1")
         addStorage("newTestStorage-not-exist-1")
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> addStorage error: field \"instance\" should be a \"object\".");
+        expect(e.message).toEqual("Biscuit -> newStorage error: field should be a \"object\".");
     }
 });
 
@@ -83,7 +83,7 @@ it("add storage not valid type", () => {
         newStorage("newTestStorage-not-exist-2")
         addStorage("newTestStorage-not-exist-2", [])
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> addStorage error: field \"instance\" should be a \"object\".");
+        expect(e.message).toEqual("Biscuit -> newStorage error: field should be a \"object\".");
     }
 });
 
@@ -92,6 +92,6 @@ it("add storage not exist name", () => {
         newStorage("newTestStorage-not-exist-3")
         addStorage(1)
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> addStorage error: field \"name\" should be a \"string\".");
+        expect(e.message).toEqual("Biscuit -> addStorage error: field should be a \"string\".");
     }
 });

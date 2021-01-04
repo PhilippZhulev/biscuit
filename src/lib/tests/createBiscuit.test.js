@@ -1,7 +1,6 @@
 import { getStorage, getState, dispatch, createBiscuit } from "../store";
 
 let middleTestVar = 0;
-let errTestVar = null;
 
 const { testState1, testState2 } = createBiscuit({
     store: {
@@ -18,10 +17,7 @@ const { testState1, testState2 } = createBiscuit({
                 middleTestVar = 201;
             }
         },
-    ],
-    debuger: function (e) {
-        errTestVar = e.message;
-    }
+    ]
 });
 
 it("check new storage", () => {
@@ -48,22 +44,34 @@ test("check middleware", async () => {
     expect(result).toEqual(201);
 });
 
-test("check debuger", () => {
-    new Promise((resolve) => {
-        getStorage("testStorage").id = "";
-        setTimeout(() => {
-            resolve(errTestVar);
-        }, 100);
-    }).then((result) => {
-        expect(result).toEqual("biscuit write error: Getter field \"testStorage\" not writable.");
+test("check debuger", (done) => {
+    const err = "Biscuit -> dispatch error: state \"Null\" not found."
+    createBiscuit({
+        store: {
+            name: "testStorage-err",
+            initial: { id: 200 }
+        },
+        actions: {
+            testStateERR: "TEST/ACTION-ERR",
+        },
+        debuger: function (e) {
+            expect(e.message).toEqual(err);
+            done();
+        }
     });
+
+    try {
+        dispatch({state: "Null", store: "testStorage-err"});
+    } catch(e) {
+        expect(e.message).toEqual(err);
+    }
 });
 
 it("no storage error", () => {
     try {
         createBiscuit({})
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> createBiscuit error: \"store\" require field.");
+        expect(e.message).toEqual("Biscuit -> [object Object] error: \"storage.name\" require field.");
     }
 });
 
@@ -75,7 +83,7 @@ it("no storage name error", () => {
             },
         })
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> createBiscuit error: \"store.name\" require field.");
+        expect(e.message).toEqual("Biscuit -> [object Object] error: \"storage.name\" require field.");
     }
 });
 
@@ -87,7 +95,7 @@ it("storage store.name type error", () => {
             },
         })
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> newStorage error: field \"name\" should be a \"string\".");
+        expect(e.message).toEqual("biscuit newStorage error: storage name is not a string.");
     }
 });
 
@@ -101,7 +109,7 @@ it("action type error", () => {
             actions: []
         })
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> createBiscuit error: field \"actions\" should be a \"object\".");
+        expect(e.message).toEqual("Biscuit -> createBiscuit error: field \"actions\" should be a \"object\".");
     }
 });
 
@@ -117,7 +125,7 @@ it("action field type error", () => {
             }
         })
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> createBiscuit error: field \"testAction\" should be a \"string\".");
+        expect(e.message).toEqual("Biscuit -> createBiscuit error: field \"testAction\" should be a \"string\".");
     }
 });
 
@@ -134,7 +142,7 @@ it("no middleware type error", () => {
             middleware: {}
         })
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> createBiscuit error: field \"middleware\" should be a \"array\".");
+        expect(e.message).toEqual("Biscuit -> createBiscuit error: field \"middleware\" should be a \"array\".");
     }
 });
 
@@ -154,7 +162,7 @@ it("no middleware field type error", () => {
             ]
         })
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> createBiscuit error: field \"0\" should be a \"function\".");
+        expect(e.message).toEqual("Biscuit -> createBiscuit error: field \"0\" should be a \"function\".");
     }
 });
 
@@ -171,6 +179,6 @@ it("no debuger type error", () => {
             debuger: []
         })
     } catch (e) {
-        expect(e.message).toEqual("biscuit -> createBiscuit error: field \"debuger\" should be a \"function\".");
+        expect(e.message).toEqual("Biscuit -> createBiscuit error: field \"debuger\" should be a \"function\".");
     }
 });

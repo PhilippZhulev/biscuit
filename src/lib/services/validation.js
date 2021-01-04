@@ -1,54 +1,55 @@
-import { Validator } from "./validator"
-import { creaateBiscuittemplate } from "./validationTempl"
+import { createLog } from "../store";
 
-export function creaateBiscuitValidator(params, fnName) {
-    const validator = Validator(fnName, creaateBiscuittemplate, params);
+const readError = (fn = "read") =>  `Biscuit -> ${fn} error: `;
+const messages = {
+    storeRequired: (key, fnName) => readError(fnName) + `"${key}" require field.`,
+    storeNotFound: (name, fnName) => readError(fnName) + `store "${name}" not found.`,
+    stateNotFound: (name, fnName) => readError(fnName) + `state "${name}" not found.`,
+    valueType: (fnName, type) => readError(fnName) + `field should be a "${type}".`,
+};
 
-    for (let key in creaateBiscuittemplate) {
-        validator.isRequired(key)
-        validator.isFieldType(key);
-        validator.isObjectFieldType(key);
+function type(value) {
+    const regex = /^\[object (\S+?)\]$/;
+    const matches = Object.prototype.toString.call(value).match(regex) || [];
+    return (matches[1] || 'undefined').toLowerCase();
+}
+
+export function storageRequire(storeName, fnName) {
+    if (!storeName) {
+        createLog(
+            new Error(messages.storeRequired("storage.name", fnName)),
+            "error",
+            storeName
+        );
     }
 }
 
-export function actionValidation({params, states, storage}, fnName = "noName") {
-    const validator = Validator(fnName);
-    validator.isCustomCheck(
-        { value: params, key: "params", type: "object", require: true },
-    );
-    validator.checkStorageKeyNotExist(storage, params.store);
-    validator.checkStorageKeyNotExist(states, `"${params.state}"`);
+export function valideStorage(params, storage, fnName) {
+    if (!storage[params.store]) {
+        createLog(
+            new Error(messages.storeNotFound(params.store, fnName)),
+            "error",
+            params.store
+        );
+    }
 }
 
-export function stateValidator(state, states) {
-
+export function valideState(params, states, fnName) {
+    if (!states[`"${params.state}"`]) {
+        createLog(
+            new Error(messages.stateNotFound(params.state, fnName)),
+            "error",
+            params.store,
+        );
+    }
 }
 
-export function storeValidator({ name, storage }, fnName = "noName") {
-    const validator = Validator(fnName);
-    validator.checkStorageKeyNotExist(storage, name);
+export function valideType(value, t, fnName, storeName) {
+    if (type(value) !== t) {
+        createLog(
+            new Error(messages.valueType(fnName, t)),
+            "error",
+            storeName,
+        );
+    }
 }
-
-export function addStoreValidator({ name, instance, storage }, fnName = "noName") {
-    const validator = Validator(fnName);
-    validator.isCustomCheck(
-        { value: name, key: "name", type: "string", require: true },
-        { value: instance, key: "instance", type: "object", require: true },
-    );
-    validator.checkStorageKeyNotExist(storage, name);
-}
-
-export function newStoreValidator({ name, initial, storage }, fnName = "noName") {
-    const validator = Validator(fnName);
-    
-    validator.checkStorageKeyExist(storage, name);
-    validator.isCustomCheck(
-        { value: name, key: "name", type: "string", require: true },
-        { value: initial, key: "initial", type: "object", require: false },
-    );
-}
-
-export function actionCallbackValidator(act, fn) {
-
-}
-

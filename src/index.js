@@ -1,25 +1,18 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-// import ExempleFirst from "./ExempleFirst";
-// import ExempleTwo from "./ExempleTwo";
-// import ExempleTree from "./ExempleTree";
+import ExempleFirst from "./ExempleFirst";
+import ExempleTree from "./ExempleTree";
 import "./styles.css";
-import { modelInit } from "./store/model/root";
-import {
-    //combineStateCollections,
-    biscuitManager,
-    subscribeToState
-} from "./lib/store";
-import Main from "./docs/Main";
+//import Main from "./docs/Main";
 
 //combineStateCollections(modelStateCollection);
 
-const manager = biscuitManager(modelInit);
+//const manager = biscuitManager(modelInit);
 
-subscribeToState(manager.props, (payload) => {
-    console.log("store === state", manager.compareWithState());
-});
+// subscribeToState(manager.props, (payload) => {
+//     console.log("store === state", manager.compareWithState());
+// });
 
 // const handleMerge = () => {
 //   manager.merge();
@@ -40,12 +33,11 @@ const rootElement = document.getElementById("root");
 ReactDOM.render(
     <React.StrictMode>
         {/* <button onClick={handleMerge}>слить в храилище</button>
-    <button onClick={handlePull}>залить в состояние</button>
-    <button onClick={handleRemove}>удалить хранилище</button>
-    <ExempleFirst />
-    <ExempleTwo />
-    <ExempleTree /> */}
-        <Main />
+        <button onClick={handlePull}>залить в состояние</button>
+        <button onClick={handleRemove}>удалить хранилище</button> */}
+        <ExempleFirst />
+        <ExempleTree />
+        {/* /<Main /> */}
     </React.StrictMode>,
     rootElement
 );

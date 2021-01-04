@@ -1,39 +1,18 @@
 import React from "react";
-import ReactDOM from "react-dom";
-import { observer, useSubscribeToState } from "./lib/react-store";
-import { counterAdd, counterClear } from "./store/root.js";
+import { observer } from "./lib/react-store";
+import { modelSuccess } from "./store/model/root.js";
 
-import { createBiscuit } from "@biscuit-store/core";
-
-const { counterAdd, counterSuccess } = createBiscuit({
-  store: {
-    name: "counter",
-    initial: { count: 0 }
-  },
-  actions: {
-    counterInit: "COUNTER_ADD",
-    counterSuccess: "COUNTER_SUCCESS"
-  }
-});
-
-const Counter = () => {
-  const [count, setCount] = useSubscribeToState(counterAdd);
-
-  const handleClear = () => setCount({ counter: count + 1 });
-
-  return <button onClick={handleClear}>clear</button>;
-};
 
 const App = observer(
-  ({ count }) => {
-    return (
-      <div className="counter">
-        <p>counter: {count}</p>
-        <Counter />
-      </div>
-    );
-  },
-  [counterAdd, counterClear]
+    ({ data }) => {
+        console.log(data)
+        return (
+            <div className="counter">
+                <p>text: {data}</p>
+            </div>
+        );
+    },
+    [modelSuccess]
 );
 
-ReactDOM.render(<App />, document.getElementById("root"));
+export default App

@@ -65,7 +65,7 @@ it("check action type error", (done) => {
     }, 100)
 
     subscribeToState([], () => { }).catch((e) => {
-        expect(e.message).toEqual("biscuit -> subscribeToState error: field \"params\" should be a \"object\".");
+        expect(e.message).toEqual("Biscuit -> subscribeToState error: store \"undefined\" not found.");
         done();
     });
 }); 
@@ -78,7 +78,7 @@ it("check action state type error", (done) => {
     }, 100)
 
     subscribeToState({ state: "TEST/ACTION-NOT", store: "testStore"}, () => { }).catch((e) => {
-        expect(e.message).toEqual("biscuit -> subscribeToState error: store \"\"TEST/ACTION-NOT\"\" not found.");
+        expect(e.message).toEqual("Biscuit -> subscribeToState error: state \"TEST/ACTION-NOT\" not found.");
         done();
     });
 }); 
@@ -91,7 +91,7 @@ it("check action store type error", (done) => {
     }, 100)
 
     subscribeToState({ state: "TEST/ACTION-1", store: "testStore-not"}, () => { }).catch((e) => {
-        expect(e.message).toEqual("biscuit -> subscribeToState error: store \"testStore-not\" not found.");
+        expect(e.message).toEqual("Biscuit -> subscribeToState error: store \"testStore-not\" not found.");
         done();
     });
 }); 

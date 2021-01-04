@@ -137,6 +137,7 @@ export const slides = {
         const state = { done: 0, finally: false };
         const manager = new EventTarget();
         const proxy = new Proxy(new Array(buffer).fill(initial), {
+
             set: (target, prop, value) => {
                 if (state.done !== buffer) {
                     state.done++;
@@ -146,13 +147,16 @@ export const slides = {
                 } else {
                     console.error("Write error:", "Attempt to write to a filled channel");
                 }
+                return true;
             },
+
             get: (traget, prop) => {
                 setTimeout(() => {
                     traget[prop] = null;
                 }, 0);
                 return traget[prop];
             }
+
         });
         return createChannel(manager, buffer, state, proxy);
     }

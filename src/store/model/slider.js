@@ -7,7 +7,7 @@ const api = async (id) => {
         "https://jsonplaceholder.typicode.com/todos/" + id
     );
     const json = await response.json();
-    return { data: json };
+    return { data: json.title };
 };
 
 slide.take("MODEL_INIT", async (read, write) => {

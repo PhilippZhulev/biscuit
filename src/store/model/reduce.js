@@ -4,7 +4,7 @@ const reduce = reduceLayer();
 
 reduce.action("MODEL_INIT", (payload) => {
     if (payload.id) {
-        payload.id = payload.id * 10;
+        payload.id = payload.id * 2;
     }
 
     return payload;

@@ -19,7 +19,7 @@ export function reduceLayer() {
                             context.state,
                             callback
                         );
-                        console.log(update);
+                
                         if (update) {
                             callback(update);
                         }
@@ -31,11 +31,11 @@ export function reduceLayer() {
         },
 
         /** create action
-     * adds an action to the scheduler
-     * @param {string} act action name
-     * @param {function} fn callback function
-     * @public
-     */
+         * adds an action to the scheduler
+         * @param {string} act action name
+         * @param {function} fn callback function
+         * @public
+         */
         action: (act, fn) => {
             actionCallbackValidator(act, fn);
             connectors.push({ act, fn });

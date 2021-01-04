@@ -1,21 +1,20 @@
 /**
- * BISCUIT STORAGE REACTs
+ * BISCUIT-STORE-REACT
  * @autor: Zhulev Philipp
  * @version: 1.0.0
  * @license MIT
  */
 
 import React, { memo, useEffect, useRef, useState } from "react";
-import { subscribeToState, getState, dispatch } from "./store";
+import { getState, dispatch, emitters } from "./store";
 import { sandbox, throttle, debounce } from "./utils";
-import { emitters } from "./emittes";
 
 const boxThrottle = sandbox(throttle);
 const boxDebounce = sandbox(debounce);
 
 /** to create parameters dependency */
 const createDep = (params, value) => {
-    params.actions[`${value.state}`] = value.store;
+    params.actions[`"${value.state}"`] = value.store;
     params.initial = { ...params.initial, ...getState(value) };
 };
 
@@ -28,25 +27,47 @@ const createDep = (params, value) => {
  */
 export default function subscribe(stateToProps, dispatchToProps) {
     return (Element) => {
-        return class extends React.PureComponent {
+        return class extends React.Component {
+            buf = [];
+
+            constructor(props) {
+                super(props);
+                this.state = {
+                    dispatchers: {}
+                }
+            }
+
             /** mount update event */
             componentDidMount() {
-                emitters.storeEmitter.addEventListener("store.update", () =>
-                    this.forceUpdate()
-                );
+                const result = {}
+                for (let param in dispatchToProps) {
+                    const actionName = `"${dispatchToProps[param].state}"`;
+                    const id = emitters[actionName].subscribeAction(actionName, () => {
+                        this.forceUpdate();
+                    })
+
+                    result[param] = (payload) => dispatch(dispatchToProps[param], payload);
+                    this.buf.push({actionName, id});
+                }
+
+                this.setState({dispatchers: result})
             }
 
             /** unmount update event */
             componentWillUnmount() {
-                emitters.storeEmitter.removeEventListener("store.update", () =>
-                    this.forceUpdate()
-                );
+                for (let el in this.buf) {
+                    emitters[el.actionName].removeSubscribeAction(el.id)
+                }
             }
 
             /** proxy element */
             render() {
                 return (
-                    <Element {...this.props} {...stateToProps()} {...dispatchToProps} />
+                    <Element
+                        {...this.props}
+                        {...stateToProps()}
+                        {...this.state.dispatchers || {}}
+                    />
                 );
             }
         };
@@ -75,18 +96,25 @@ export function observer(Element, deps) {
     /** Create decorator */
     const Decorator = (props) => {
         const [state, setState] = useState(params.initial);
+        
         useEffect(() => {
-            const fn = (e) => {
-                if (params.actions[`${e.detail.action}`]) {
-                    setState({ ...state, ...e.detail.payload });
+            const buf = [];
+
+            for (let name in params.actions) {
+                const id = emitters[name].subscribeAction(name, (data) => {
+                    if (params.actions[`"${data.action}"`]) {
+                        setState((prev) => ({ ...prev, ...data.payload }));
+                    }
+                })
+                buf.push({id, name});
+            }
+
+            return () => {
+                for (let el of buf) {
+                    emitters[el.name].removeSubscribeAction(el.id)
                 }
             };
 
-            emitters.storeEmitter.addEventListener("store.update", fn);
-            return () => {
-                emitters.storeEmitter.removeEventListener("store.update", fn);
-            };
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 
         return <Element {...props} {...state} />;
@@ -107,23 +135,30 @@ export function observer(Element, deps) {
 export function useSubscribe(params, update = true) {
     const [state, setState] = useState(null);
     let value = useRef(getState(params));
+
     useEffect(() => {
         let cache = {};
-        subscribeToState(params, (instance) => {
-            const n = instance;
+        const actionName = `"${params}"`;
+
+        const id = emitters[actionName].subscribeAction(actionName, (data) => {
+            const n = data;
 
             if (update) {
-                setState(instance);
+                setState(data);
                 return;
             }
 
             if (!(n in cache)) {
                 setState(null);
             }
-            cache[n] = instance;
+
+            cache[n] = data;
             value.current = cache[n];
-        });
+        })
+
+        return () => emitters[actionName].removeSubscribeAction(id)
     }, [params, update]);
+
     return [state || value.current, (payload) => dispatch(params, payload)];
 }
 
