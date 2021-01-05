@@ -45,7 +45,7 @@ it("check manager.replaceStore", (done) => {
 
     setTimeout(() => {
         expect(getState(testState1)).toEqual(last);
-        manager.replaceStore();
+        manager.replaceRepo();
         expect(getRepo("testStore")).toEqual(last);
         done();
     }, 100);
@@ -94,8 +94,8 @@ it("check manager.compareStateWithInstance", () => {
 }); 
 
 it("check manager.compareStoreWithInstance", () => {
-    expect(manager.compareStoreWithInstance(first)).toEqual(false);
-    expect(manager.compareStoreWithInstance(last)).toEqual(true);
+    expect(manager.compareRepoWithInstance(first)).toEqual(false);
+    expect(manager.compareRepoWithInstance(last)).toEqual(true);
 }); 
 
 it("check manager.close", () => {

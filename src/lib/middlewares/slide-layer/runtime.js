@@ -19,7 +19,7 @@ const generator = function* (rb) {
  * @private
  */
 export async function runtime(connector, payload, key) {
-    buffers.store[0] = key;
+    buffers.repo[0] = key;
 
     await connector.fn({ ...reader, payload }, writer);
     const runtime = generator(buffers.runtime);

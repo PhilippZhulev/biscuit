@@ -10,8 +10,8 @@ import {
  * @private
  */
 export async function activeMiddlewares(context, fn = () => null) {
-    if (middlewares[context.store]) {
-        await middlewares[context.store].forEach((middle) => {
+    if (middlewares[context.repo]) {
+        await middlewares[context.repo].forEach((middle) => {
             middle(context, fn);
         });
     } else {

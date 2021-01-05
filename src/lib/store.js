@@ -21,16 +21,16 @@ import {
 } from "./services/validation";
 
 /**
- * This method allows you to add new values to the store. 
+ * This method allows you to add new values to the repository. 
  * Accepts the storage name and object.
- * @param {string} name storage name
+ * @param {string} name repository name
  * @param {object} instance object with added data
  * @public
  */
 export function addRepo(name, instance) {
     valideType(name, "string", "addRepo");
     valideType(instance, "object", "newRepo", name);
-    valideStorage({store: name}, repositories, "getRepo");
+    valideStorage({repo: name}, repositories, "getRepo");
     repositories[name] = { ...repositories[name], ...instance };
 }
 
@@ -44,7 +44,7 @@ export function addRepo(name, instance) {
  * @public
  */
 export function getRepo(name) {
-    valideStorage({store: name}, repositories, "getRepo");
+    valideStorage({repo: name}, repositories, "getRepo");
     return gettter({ ...repositories[name] });
 }
 
@@ -62,7 +62,7 @@ export function getState(action) {
     valideState(action, states, "getState");
 
     const act = states[`"${action.state}"`];
-    return gettter({ ...act[action.store] });
+    return gettter({ ...act[action.repo] });
 }
 
 /**
@@ -94,7 +94,7 @@ export function dispatch(action, payload = {}) {
 
     (async function () {
         const actionStr = `"${action.state}"`;
-        const act = states[actionStr][action.store];
+        const act = states[actionStr][action.repo];
         const prev = { ...act };
         const emit = emitters[actionStr];
 
@@ -120,7 +120,7 @@ export function dispatch(action, payload = {}) {
          */
         voids.merge = () => {
             if (`"${action.state}"` in states) {
-                repositories[action.store] = {
+                repositories[action.repo] = {
                     ...act,
                     ...payData
                 };
@@ -155,7 +155,7 @@ export function dispatch(action, payload = {}) {
             activeMiddlewares(
                 {
                     action: action.state,
-                    store: action.store,
+                    repo: action.repo,
                     payload: payData,
                     state: act
                 },
@@ -166,7 +166,7 @@ export function dispatch(action, payload = {}) {
         });
 
         /** update state data */
-        states[actionStr][action.store] = {
+        states[actionStr][action.repo] = {
             ...act,
             ...payData
         };
@@ -174,8 +174,8 @@ export function dispatch(action, payload = {}) {
         /** create dispatch action */
         emit.dispatchAction(actionStr, {
             action: action.state,
-            store: action.store,
-            payload: states[actionStr][action.store] 
+            repo: action.repo,
+            payload: states[actionStr][action.repo] 
         })
     })();
 
@@ -199,8 +199,8 @@ export async function subscribeToState(action, fn = () => { }) {
 
     const emit = emitters[`"${action.state}"`];
     const call = (data, resolve) => {
-        const g = getState({ store: data.store, state: action.state });
-        if (data.action === action.state && data.store === action.store) {
+        const g = getState({ repo: data.repo, state: action.state });
+        if (data.action === action.state && data.repo === action.repo) {
             resolve(g);
         }
     }
@@ -232,9 +232,9 @@ export function newManager(action) {
          * @public
          */
         merge: () => {
-            repositories[action.store] = {
-                ...repositories[action.store],
-                ...states[`"${action.state}"`][action.store]
+            repositories[action.repo] = {
+                ...repositories[action.repo],
+                ...states[`"${action.state}"`][action.repo]
             };
         },
 
@@ -243,9 +243,9 @@ export function newManager(action) {
          * @public
          */
         pull: () => {
-            states[`"${action.state}"`][action.store] = {
-                ...states[`"${action.state}"`][action.store],
-                ...repositories[action.store]
+            states[`"${action.state}"`][action.repo] = {
+                ...states[`"${action.state}"`][action.repo],
+                ...repositories[action.repo]
             };
         },
 
@@ -253,8 +253,8 @@ export function newManager(action) {
          * This method will replace the data from the storage with state data.
          * @public
          */
-        replaceStore: () => {
-            repositories[action.store] = { ...states[`"${action.state}"`][action.store] };
+        replaceRepo: () => {
+            repositories[action.repo] = { ...states[`"${action.state}"`][action.repo] };
         },
 
         /**
@@ -262,7 +262,7 @@ export function newManager(action) {
          * @public
          */
         replaceState: () => {
-            states[`"${action.state}"`][action.store] = { ...repositories[action.store] };
+            states[`"${action.state}"`][action.repo] = { ...repositories[action.repo] };
         },
 
         /**
@@ -275,9 +275,9 @@ export function newManager(action) {
             valideStorage(targetAction, repositories, "newManager.mergeState");
             valideState(targetAction, states, "newManager.mergeState");
 
-            states[`"${targetAction.state}"`][action.store] = {
-                ...states[`"${targetAction.state}"`][action.store],
-                ...states[`"${action.state}"`][action.store]
+            states[`"${targetAction.state}"`][action.repo] = {
+                ...states[`"${targetAction.state}"`][action.repo],
+                ...states[`"${action.state}"`][action.repo]
             };
         },
 
@@ -289,10 +289,10 @@ export function newManager(action) {
          * @public
          */
         remove: () => {
-            delete repositories[action.store];
+            delete repositories[action.repo];
             Object.keys(states[`"${action.state}"`]).forEach((item) => {
-                if (item === action.store) {
-                    delete states[`"${action.state}"`][action.store];
+                if (item === action.repo) {
+                    delete states[`"${action.state}"`][action.repo];
                 }
             });
         },
@@ -320,21 +320,21 @@ export function newManager(action) {
             valideStorage(targetAction, repositories, "newManager.compareStates");
             valideState(targetAction, states, "newManager.compareStates");
             return compareObject(
-                states[`"${action.state}"`][action.store],
-                states[`"${targetAction.state}"`][action.store]
+                states[`"${action.state}"`][action.repo],
+                states[`"${targetAction.state}"`][action.repo]
             );
         },
 
         /**
-         * Сompare state and store
+         * Сompare state and repository
          * WARNING: states should not contain methods
          * @return {bool}
          * @public
          */
         compareWithState: () => {
             return compareObject(
-                repositories[action.store],
-                states[`"${action.state}"`][action.store]
+                repositories[action.repo],
+                states[`"${action.state}"`][action.repo]
             );
         },
 
@@ -346,18 +346,18 @@ export function newManager(action) {
          * @public
          */
         compareStateWithInstance: (instance) => {
-            return compareObject(states[`"${action.state}"`][action.store], instance);
+            return compareObject(states[`"${action.state}"`][action.repo], instance);
         },
 
         /**
-         * compare store and instance object
+         * compare repository and instance object
          * WARNING: states should not contain methods
          * @param {object} instance object instance
          * @return {bool}
          * @public
          */
-        compareStoreWithInstance: (instance) => {
-            return compareObject(repositories[action.store], instance);
+        compareRepoWithInstance: (instance) => {
+            return compareObject(repositories[action.repo], instance);
         },
 
         /**
@@ -369,9 +369,9 @@ export function newManager(action) {
          * @public
          */
         clone: (name) => {
-            repositories[name] = { ...repositories[action.store] };
+            repositories[name] = { ...repositories[action.repo] };
             states[`"${action.state}"`][name] = {
-                ...states[`"${action.state}"`][action.store]
+                ...states[`"${action.state}"`][action.repo]
             };
         },
 

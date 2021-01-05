@@ -12,7 +12,7 @@ export function slideLayer() {
         connect: (context, callback) => {
             for (let connector of connectors) {
                 if (connector.act === context.action) {
-                    runtime(connector, context.payload, context.store);
+                    runtime(connector, context.payload, context.repo);
                 }
             }
         },

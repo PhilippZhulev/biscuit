@@ -65,7 +65,7 @@ it("check action type error", (done) => {
     }, 100)
 
     subscribeToState([], () => { }).catch((e) => {
-        expect(e.message).toEqual("Biscuit -> subscribeToState error: store \"undefined\" not found.");
+        expect(e.message).toEqual("Biscuit -> subscribeToState error: repository \"undefined\" not found.");
         done();
     });
 }); 
@@ -77,7 +77,7 @@ it("check action state type error", (done) => {
         dispatch(testState1, { value: "test-1" });
     }, 100)
 
-    subscribeToState({ state: "TEST/ACTION-NOT", store: "testStore"}, () => { }).catch((e) => {
+    subscribeToState({ state: "TEST/ACTION-NOT", repo: "testStore"}, () => { }).catch((e) => {
         expect(e.message).toEqual("Biscuit -> subscribeToState error: state \"TEST/ACTION-NOT\" not found.");
         done();
     });
@@ -90,8 +90,8 @@ it("check action store type error", (done) => {
         dispatch(testState1, { value: "test-1" });
     }, 100)
 
-    subscribeToState({ state: "TEST/ACTION-1", store: "testStore-not"}, () => { }).catch((e) => {
-        expect(e.message).toEqual("Biscuit -> subscribeToState error: store \"testStore-not\" not found.");
+    subscribeToState({ state: "TEST/ACTION-1", repo: "testStore-not"}, () => { }).catch((e) => {
+        expect(e.message).toEqual("Biscuit -> subscribeToState error: repository \"testStore-not\" not found.");
         done();
     });
 }); 

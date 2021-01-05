@@ -47,7 +47,7 @@ export function newRepo(name, initial = {}) {
  * @public
  */
 export function createStateTo(name) {
-    valideStorage({store: name}, repositories, "createActionsTo");
+    valideStorage({repo: name}, repositories, "createActionsTo");
     return {
     /** This method binds the state to the selected storagee
      * @param {string} action state name
@@ -61,12 +61,11 @@ export function createStateTo(name) {
                 ...states[actionStr],
                 [name]: { ...repositories[name], ...initial }
             };
-            const actionParams = { state: action, store: name };
 
-            return { ...actionParams };
+            return { ...{ state: action, repo: name } };
         },
-        /** store key */
-        store: name
+        /** repository key */
+        repo: name
     };
 }
 
@@ -99,7 +98,7 @@ export function stateCollection(...action) {
          */
         compile: () => {
             for (let i = 0; i < action.length; i++) {
-                collection[action[i].store].push({ ...action[i] });
+                collection[action[i].repo].push({ ...action[i] });
             }
 
             return collection;
@@ -134,11 +133,11 @@ export const getStateCollection = {
 
     /**
    * Get a collection by matching the storage name
-   * @param {string} store storage name
+   * @param {string} repo storage name
    * @return {object} collections instance
    * @public
    */
-    fromStore: (store) => ({ ...collections[store] }),
+    fromRepo: (repo) => ({ ...collections[repo] }),
 
     /**
    * Get the result filtered by state name
@@ -158,13 +157,13 @@ export const getStateCollection = {
 
 /**
  * This method allows you to add middleware for the state handler.
- * @param {string} params the parameters of the action
+ * @param {string} action the parameters of the action
  * @return {object} returns a set of methods
  * @public
  */
-export function middleware(params) {
-    valideStorage(params, repositories, "middleware");
-    const s = params.store;
+export function middleware(action) {
+    valideStorage(action, repositories, "middleware");
+    const s = action.repo;
     return {
         /**
          * Adds a handler to the middleware task list.
@@ -184,13 +183,13 @@ export function middleware(params) {
 /**
  * This method allows you to add your own debugger. 
  * The debugger will accept and output logs instead of the standard debugger.
- * @param {string} store a string with the name of the store
+ * @param {string} repo a string with the name of the repository
  * @param {function} fn debugger callback function
  * @public
  */
-export function createDebuger(store, fn) {
-    valideStorage({ store }, repositories, "createDebuger");
-    debugCollection[store] = fn;
+export function createDebuger(repo, fn) {
+    valideStorage({ repo }, repositories, "createDebuger");
+    debugCollection[repo] = fn;
 }
 
 

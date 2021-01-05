@@ -73,13 +73,13 @@ it("check dispatch params type error", () => {
     try {
         dispatch([], { value: 5 });
     } catch (e) {
-        expect(e.message).toEqual("Biscuit -> dispatch error: store \"undefined\" not found.");
+        expect(e.message).toEqual("Biscuit -> dispatch error: repository \"undefined\" not found.");
     }
 }); 
 
 it("check dispatch params.state not found", () => {
     try {
-        dispatch({state: "TEST/DIS/ACTION-NOT", store: "testDispatchStore"}, { value: 5 });
+        dispatch({state: "TEST/DIS/ACTION-NOT", repo: "testDispatchStore"}, { value: 5 });
     } catch (e) {
         expect(e.message).toEqual("Biscuit -> dispatch error: state \"TEST/DIS/ACTION-NOT\" not found.");
     }

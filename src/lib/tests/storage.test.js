@@ -66,7 +66,7 @@ it("get storage not exist key", () => {
     try {
         getRepo("newTestStorage-not-exist")
     } catch (e) {
-        expect(e.message).toEqual("Biscuit -> getRepo error: store \"newTestStorage-not-exist\" not found.");
+        expect(e.message).toEqual("Biscuit -> getRepo error: repository \"newTestStorage-not-exist\" not found.");
     }
 });
 

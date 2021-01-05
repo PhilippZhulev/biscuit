@@ -26,8 +26,8 @@ it("check new storage", () => {
 });
 
 it("check state vars", () => {
-    expect(testState1).toEqual({ state: "TEST/ACTION-1", store: "testStorage" });
-    expect(testState2).toEqual({ state: "TEST/ACTION-2", store: "testStorage" });
+    expect(testState1).toEqual({ state: "TEST/ACTION-1", repo: "testStorage" });
+    expect(testState2).toEqual({ state: "TEST/ACTION-2", repo: "testStorage" });
 });
 
 it("checking the existence of a state", () => {

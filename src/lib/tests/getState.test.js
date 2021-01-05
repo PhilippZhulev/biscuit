@@ -34,13 +34,13 @@ it("getState: error params type", () => {
     try {
         getState([])
     } catch (e) {
-        expect(e.message).toEqual("Biscuit -> getState error: store \"undefined\" not found.");
+        expect(e.message).toEqual("Biscuit -> getState error: repository \"undefined\" not found.");
     }
 });
 
 it("getState: error state", () => {
     try {
-        getState({state: "TEST/ACTION-NULL", store: "testStore"})
+        getState({state: "TEST/ACTION-NULL", repo: "testStore"})
     } catch (e) {
         expect(e.message).toEqual("Biscuit -> getState error: state \"TEST/ACTION-NULL\" not found.");
     }
@@ -48,8 +48,8 @@ it("getState: error state", () => {
 
 it("getState: error store", () => {
     try {
-        getState({state: "TEST/ACTION-1", store: "testStore-NULL"})
+        getState({state: "TEST/ACTION-1", repo: "testStore-NULL"})
     } catch (e) {
-        expect(e.message).toEqual("Biscuit -> getState error: store \"testStore-NULL\" not found.");
+        expect(e.message).toEqual("Biscuit -> getState error: repository \"testStore-NULL\" not found.");
     }
 });

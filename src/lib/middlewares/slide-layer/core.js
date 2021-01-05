@@ -5,7 +5,7 @@ const boxThrottle = sandbox(throttle);
 const boxDebounce = sandbox(debounce);
 
 export const buffers = {
-    store: [],
+    repo: [],
     result: {},
     runtime: []
 };
@@ -29,8 +29,8 @@ export function connectNext() {
     buffers.runtime = [];
 }
 
-const getStoreBuffer = () => {
-    return buffers.store[0];
+const getRepoBuffer = () => {
+    return buffers.repo[0];
 };
 
 export function getFunctionName(fn) {
@@ -81,28 +81,28 @@ export const slides = {
     },
 
     extractToProvide: async (include, action) => {
-        dispatch({ store: getStoreBuffer(), state: action }, await include.out);
+        dispatch({ repo: getRepoBuffer(), state: action }, await include.out);
     },
 
     extractRaceToProvide: function (includes, action) {
         this.extractRace(includes, (data) => {
-            dispatch({ store: getStoreBuffer(), state: action }, data);
+            dispatch({ repo: getRepoBuffer(), state: action }, data);
         });
     },
 
     extractAllToProvide: function (includes, action) {
         this.extractAll(includes, (data) => {
-            dispatch({ store: getStoreBuffer(), state: action }, data);
+            dispatch({ repo: getRepoBuffer(), state: action }, data);
         });
     },
 
     provide: function (action, instance) {
-        dispatch({ store: getStoreBuffer(), state: action }, instance);
+        dispatch({ repo: getRepoBuffer(), state: action }, instance);
     },
 
     chanToProvide: async (action, ch, fn = null, waitLen = 1) => {
         const resp = {
-            send: (data) => dispatch({ store: getStoreBuffer(), state: action }, data)
+            send: (data) => dispatch({ repo: getRepoBuffer(), state: action }, data)
         };
         ch.manager.addEventListener("slide.update.chan", () => {
             if (fn && ch.state.done === waitLen) {
@@ -118,7 +118,7 @@ export const slides = {
     },
 
     resolve: async (action) => {
-        await dispatch({ store: getStoreBuffer(), state: action }, {});
+        await dispatch({ repo: getRepoBuffer(), state: action }, {});
     },
 
     all: (fns) => Promise.all(fns),

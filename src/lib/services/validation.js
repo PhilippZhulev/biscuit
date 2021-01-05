@@ -2,8 +2,8 @@ import { createLog } from "../debuger";
 
 const readError = (fn = "read") =>  `Biscuit -> ${fn} error: `;
 const messages = {
-    storeRequired: (key, fnName) => readError(fnName) + `"${key}" require field.`,
-    storeNotFound: (name, fnName) => readError(fnName) + `store "${name}" not found.`,
+    repoRequired: (key, fnName) => readError(fnName) + `"${key}" require field.`,
+    repoNotFound: (name, fnName) => readError(fnName) + `repository "${name}" not found.`,
     stateNotFound: (name, fnName) => readError(fnName) + `state "${name}" not found.`,
     valueType: (fnName, type) => readError(fnName) + `field should be a "${type}".`,
 };
@@ -14,42 +14,42 @@ function type(value) {
     return (matches[1] || 'undefined').toLowerCase();
 }
 
-export function storageRequire(storeName, fnName) {
-    if (!storeName) {
+export function storageRequire(repoName, fnName) {
+    if (!repoName) {
         createLog(
-            new Error(messages.storeRequired("storage.name", fnName)),
+            new Error(messages.repoRequired("storage.name", fnName)),
             "error",
-            storeName
+            repoName
         );
     }
 }
 
-export function valideStorage(params, storage, fnName) {
-    if (!storage[params.store]) {
+export function valideStorage(action, storage, fnName) {
+    if (!storage[action.repo]) {
         createLog(
-            new Error(messages.storeNotFound(params.store, fnName)),
+            new Error(messages.repoNotFound(action.repo, fnName)),
             "error",
-            params.store
+            action.repo
         );
     }
 }
 
-export function valideState(params, states, fnName) {
-    if (!states[`"${params.state}"`]) {
+export function valideState(action, states, fnName) {
+    if (!states[`"${action.state}"`]) {
         createLog(
-            new Error(messages.stateNotFound(params.state, fnName)),
+            new Error(messages.stateNotFound(action.state, fnName)),
             "error",
-            params.store,
+            action.repo,
         );
     }
 }
 
-export function valideType(value, t, fnName, storeName) {
+export function valideType(value, t, fnName, repoName) {
     if (type(value) !== t) {
         createLog(
             new Error(messages.valueType(fnName, t)),
             "error",
-            storeName,
+            repoName,
         );
     }
 }
