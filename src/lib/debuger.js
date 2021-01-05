@@ -13,16 +13,19 @@ export const debugCollection = {};
  * and outputs them to the debugger if necessary.
  * @param {any} data is error -> new Error, is warn -> string
  * @param {string} type error || warn
- * @param {string} storeName storage name
+ * @param {string} repoName repository name
  * @public
  */
-export const createLog = function (data, type = "error", storeName) {
-    if (!debugCollection[storeName]) {
+export const createLog = function (data, type = "error", repoName) {
+    if (!debugCollection[repoName]) {
         switch (type) {
         case "error":
             throw data;
         case "warn":
             console.warn(data);
+            break;
+        case "log":
+            console.log(data);
             break;
         default:
             throw messages.debugNotFound;
@@ -31,11 +34,11 @@ export const createLog = function (data, type = "error", storeName) {
     }
 
     for (let key in debugCollection) {
-        if (key === storeName) {
+        if (key === repoName) {
             debugCollection[key](data);
         }
 
-        if (!storeName) {
+        if (!repoName) {
             debugCollection[key](data);
         }
     }

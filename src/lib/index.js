@@ -1,13 +1,13 @@
-import { createBiscuit, newStorage } from "./creator";
-import { newManager, dispatch, getStorage, getState, addStorage, subscribeToState } from "./store";
+import { createBiscuit, newRepo } from "./creator";
+import { newManager, dispatch, getRepo, getState, addRepo, subscribeToState } from "./store";
 
 export {
     createBiscuit,
     newManager,
     dispatch,
-    getStorage,
+    getRepo,
     getState,
-    addStorage,
+    addRepo,
     subscribeToState,
-    newStorage
+    newRepo
 }

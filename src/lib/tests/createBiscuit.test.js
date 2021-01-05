@@ -1,14 +1,14 @@
-import { createBiscuit, getStorage, getState, dispatch } from "../index";
-
+import { createBiscuit, getRepo, getState, dispatch } from "../index";
+import { createLog } from "../debuger";
 
 let middleTestVar = 0;
 
 const { testState1, testState2 } = createBiscuit({
-    store: {
+    repo: {
         name: "testStorage",
         initial: { id: 200 }
     },
-    actions: {
+    states: {
         testState1: "TEST/ACTION-1",
         testState2: "TEST/ACTION-2"
     },
@@ -22,7 +22,7 @@ const { testState1, testState2 } = createBiscuit({
 });
 
 it("check new storage", () => {
-    expect(getStorage("testStorage")).toEqual({ id: 200 });
+    expect(getRepo("testStorage")).toEqual({ id: 200 });
 });
 
 it("check state vars", () => {
@@ -46,26 +46,51 @@ test("check middleware", async () => {
 });
 
 test("check debuger", (done) => {
-    const err = "Biscuit -> dispatch error: state \"Null\" not found."
+    const log = "test-log"
     createBiscuit({
-        store: {
+        repo: {
             name: "testStorage-err",
             initial: { id: 200 }
         },
-        actions: {
+        states: {
             testStateERR: "TEST/ACTION-ERR",
         },
         debuger: function (e) {
-            expect(e.message).toEqual(err);
+            expect(e).toEqual(log);
             done();
         }
     });
 
-    try {
-        dispatch({state: "Null", store: "testStorage-err"});
-    } catch(e) {
-        expect(e.message).toEqual("Cannot read property 'testStorage-err' of undefined");
-    }
+    createLog(
+        log,
+        "log",
+        "testStorage-err"
+    );
+});
+
+test("check debuger", () => {
+    const { testStateInitial1, testStateInitial2, testStateInitial3 } = createBiscuit({
+        repo: {
+            name: "repo-1-test",
+            initial: { id: 200 }
+        },
+        states: {
+            testStateInitial1: {
+                name: "TEST/ACTION-INITIAL1", 
+                initial: { value: "test-200" }
+            },
+            testStateInitial2: "TEST/ACTION-INITIAL2",
+            testStateInitial3: {
+                name: "TEST/ACTION-INITIAL3", 
+                initial: { value: "test-300", id: 250 }
+            },
+        }
+    });
+
+    expect(getState(testStateInitial1)).toEqual({ value: "test-200", id: 200 });
+    expect(getState(testStateInitial2)).toEqual({ id: 200 });
+    expect(getState(testStateInitial3)).toEqual({ value: "test-300", id: 250 });
+
 });
 
 it("no storage error", () => {
@@ -79,7 +104,7 @@ it("no storage error", () => {
 it("no storage name error", () => {
     try {
         createBiscuit({
-            store: {
+            repo: {
                 initial: { id: 200 }
             },
         })
@@ -91,23 +116,23 @@ it("no storage name error", () => {
 it("storage store.name type error", () => {
     try {
         createBiscuit({
-            store: {
+            repo: {
                 name: 1,
             },
         })
     } catch (e) {
-        expect(e.message).toEqual("biscuit newStorage error: storage name is not a string.");
+        expect(e.message).toEqual("biscuit newRepo error: storage name is not a string.");
     }
 });
 
 it("action type error", () => {
     try {
         createBiscuit({
-            store: {
+            repo: {
                 name: "testInitial2",
                 initial: {}
             },
-            actions: []
+            states: []
         })
     } catch (e) {
         expect(e.message).toEqual("Biscuit -> createBiscuit error: field \"actions\" should be a \"object\".");
@@ -117,11 +142,11 @@ it("action type error", () => {
 it("action field type error", () => {
     try {
         createBiscuit({
-            store: {
+            repo: {
                 name: "testInitial3",
                 initial: {}
             },
-            actions: {
+            states: {
                 testAction: 1
             }
         })
@@ -133,11 +158,11 @@ it("action field type error", () => {
 it("no middleware type error", () => {
     try {
         createBiscuit({
-            store: {
+            repo: {
                 name: "testInitial3",
                 initial: {}
             },
-            actions: {
+            states: {
                 testAction: "ACT/TEST"
             },
             middleware: {}
@@ -151,11 +176,11 @@ it("no middleware type error", () => {
 it("no middleware field type error", () => {
     try {
         createBiscuit({
-            store: {
+            repo: {
                 name: "testInitial4",
                 initial: {}
             },
-            actions: {
+            states: {
                 testAction: "ACT/TEST"
             },
             middleware: [
@@ -170,11 +195,11 @@ it("no middleware field type error", () => {
 it("no debuger type error", () => {
     try {
         createBiscuit({
-            store: {
+            repo: {
                 name: "testInitial5",
                 initial: {}
             },
-            actions: {
+            states: {
                 testAction: "ACT/TEST"
             },
             debuger: []

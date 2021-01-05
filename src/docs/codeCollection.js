@@ -4,7 +4,7 @@ export const startReactCodeInit =
 import { createBiscuit } from "@biscuit-store/core";
 
 export const { counterAdd } = createBiscuit({
-  store: {
+  repo: {
     name: "counter",
     initial: { value: 0 }
   },

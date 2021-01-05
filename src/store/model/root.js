@@ -3,11 +3,11 @@ import slide from "./slider";
 import reduce from "./reduce";
 
 export const { modelInit, modelSuccess } = createBiscuit({
-    store: {
+    repo: {
         name: "model",
         initial: { id: 0, dot: "", data: null }
     },
-    actions: {
+    states: {
         modelInit: "MODEL_INIT",
         modelSuccess: "MODEL_SUCCESS"
     },

@@ -2,7 +2,7 @@ import { emitter } from "./emitter";
 import { debugCollection, createLog } from "./debuger";
 import {
     collections,
-    storage,
+    repositories,
     states,
     middlewares,
     emitters
@@ -16,7 +16,8 @@ import {
 
 /** debug messages */
 const messages = {
-    storageNameError: (fnName) =>  `biscuit ${fnName} error: storage name is not a string.`,
+    storageNameError: (fnName) => `biscuit ${fnName} error: storage name is not a string.`,
+    stateTypeError: `biscuit createBiscuit error: the status field type must be either a string or an object.`,
 };
 
 /**
@@ -27,15 +28,15 @@ const messages = {
  * @param {object} initial initial object
  * @public
  */
-export function newStorage(name, initial = {}) {
+export function newRepo(name, initial = {}) {
     if (typeof name !== "string") {
         createLog(
-            new Error(messages.storageNameError("newStorage")),
+            new Error(messages.storageNameError("newRepo")),
             "error",
         );
     }
-    valideType(initial, "object", "newStorage", name);
-    storage[name] = initial;
+    valideType(initial, "object", "newRepo", name);
+    repositories[name] = initial;
 }
 
 /**
@@ -45,18 +46,21 @@ export function newStorage(name, initial = {}) {
  * @return {object} returns the "add" method
  * @public
  */
-export function createActionsTo(name) {
-    valideStorage({store: name}, storage, "createActionsTo");
+export function createStateTo(name) {
+    valideStorage({store: name}, repositories, "createActionsTo");
     return {
     /** This method binds the state to the selected storagee
      * @param {string} action state name
      * @public
      */
-        add: (action) => {
+        bind: (action, initial = {}) => {
             const actionStr = `"${action}"`;
 
             emitters[actionStr] = emitter(actionStr)
-            states[actionStr] = { [name]: storage[name] };
+            states[actionStr] = {
+                ...states[actionStr],
+                [name]: { ...repositories[name], ...initial }
+            };
             const actionParams = { state: action, store: name };
 
             return { ...actionParams };
@@ -75,7 +79,7 @@ export function createActionsTo(name) {
  */
 export function initialActions(createActions, actions) {    
     actions.forEach((item) => {
-        createActions.add(item);
+        createActions.bind(item);
     });
 }
 
@@ -159,7 +163,7 @@ export const getStateCollection = {
  * @public
  */
 export function middleware(params) {
-    valideStorage(params, storage, "middleware");
+    valideStorage(params, repositories, "middleware");
     const s = params.store;
     return {
         /**
@@ -185,7 +189,7 @@ export function middleware(params) {
  * @public
  */
 export function createDebuger(store, fn) {
-    valideStorage({ store }, storage, "createDebuger");
+    valideStorage({ store }, repositories, "createDebuger");
     debugCollection[store] = fn;
 }
 
@@ -198,21 +202,25 @@ export function createDebuger(store, fn) {
  * @public
  */
 export function createBiscuit(params) {
-    storageRequire(params.store, storage, "createBiscuit");
-    storageRequire(params.store.name, storage, "createBiscuit");
+    storageRequire(params.repo, repositories, "createBiscuit");
+    storageRequire(params.repo.name, repositories, "createBiscuit");
 
     /** Create a new storage */
-    newStorage(params.store.name, params.store.initial);
-    const a = createActionsTo(params.store.name);
+    newRepo(params.repo.name, params.repo.initial);
+    const a = createStateTo(params.repo.name);
     const stateList = {};
 
     /** Adding States to the repository */
-    if (params.actions) {
-        for (let key in params.actions) {
-            stateList[key] = a.add(params.actions[key]);
+    if (params.states) {
+        for (let key in params.states) {
+            const param = params.states[key];
+            const paramType = typeof param === "string"
+            stateList[key] = a.bind(
+                paramType ? param : param.name,
+                paramType ? {} : param.initial
+            );
         }
     }
-
     /** Adding middleware to the repository */
     if (params.middleware && params.middleware.length > 0) {
         const middle = middleware(a);
@@ -223,7 +231,7 @@ export function createBiscuit(params) {
 
     /** Adding debuger to the repository */
     if (params.debuger) {
-        createDebuger(params.store.name, params.debuger);
+        createDebuger(params.repo.name, params.debuger);
     }
 
     return stateList;

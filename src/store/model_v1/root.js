@@ -1,8 +1,8 @@
-import { newStorage, createActionsTo, middleware } from "../../lib/store";
+import { newRepo, createActionsTo, middleware } from "../../lib/store";
 import slide from "./slider";
 
 /** init new storage */
-newStorage("model", { id: 0, dot: "", data: null });
+newRepo("model", { id: 0, dot: "", data: null });
 
 /** bind new storage to actions */
 const model = createActionsTo("model");

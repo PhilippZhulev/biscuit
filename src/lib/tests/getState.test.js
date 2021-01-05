@@ -2,11 +2,11 @@
 import { createBiscuit, getState, dispatch } from "../index";
 
 const { testState1, testState2 } = createBiscuit({
-    store: {
+    repo: {
         name: "testStore",
         initial: { value: "test" }
     },
-    actions: {
+    states: {
         testState1: "TEST/ACTION-1",
         testState2: "TEST/ACTION-2"
     }

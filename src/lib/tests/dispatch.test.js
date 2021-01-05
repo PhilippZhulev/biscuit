@@ -1,11 +1,11 @@
-import { createBiscuit, getStorage, getState, dispatch } from "../index";
+import { createBiscuit, getRepo, getState, dispatch } from "../index";
 
 const { testState1, testState2, testState3, testState4 } = createBiscuit({
-    store: {
+    repo: {
         name: "testDispatchStore",
         initial: { value: 0 }
     },
-    actions: {
+    states: {
         testState1: "TEST/DIS/ACTION-1",
         testState2: "TEST/DIS/ACTION-2",
         testState3: "TEST/DIS/ACTION-3",
@@ -36,7 +36,7 @@ it("check dispatch merge", (done) => {
     
     setTimeout(() => {
         expect(getState(testState3).value).toEqual(4);
-        expect(getStorage("testDispatchStore").value).toEqual(4);
+        expect(getRepo("testDispatchStore").value).toEqual(4);
         done();
     }, 50)
 }); 
@@ -64,7 +64,7 @@ test("check dispatch merge -> after void", (done) => {
     });
 
     setTimeout(() => {
-        expect(getStorage("testDispatchStore").value).toEqual(12);
+        expect(getRepo("testDispatchStore").value).toEqual(12);
         done();
     }, 50)
 }); 

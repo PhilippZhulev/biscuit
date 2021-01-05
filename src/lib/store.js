@@ -5,7 +5,7 @@
  * @license MIT
  */
 import {
-    storage,
+    repositories,
     states,
     emitters
 } from "./repositories";
@@ -27,25 +27,25 @@ import {
  * @param {object} instance object with added data
  * @public
  */
-export function addStorage(name, instance) {
-    valideType(name, "string", "addStorage");
-    valideType(instance, "object", "newStorage", name);
-    valideStorage({store: name}, storage, "getStorage");
-    storage[name] = { ...storage[name], ...instance };
+export function addRepo(name, instance) {
+    valideType(name, "string", "addRepo");
+    valideType(instance, "object", "newRepo", name);
+    valideStorage({store: name}, repositories, "getRepo");
+    repositories[name] = { ...repositories[name], ...instance };
 }
 
 /**
  * This method is used to get data from the storage by its key. 
  * Warning: Storage data cannot be changed directly. 
- * You can replace the values either with the "addStorage" 
+ * You can replace the values either with the "addRepo" 
  * method or with state injection via "manager".
  * @param {string} name storage name
  * @return {object} storage data
  * @public
  */
-export function getStorage(name) {
-    valideStorage({store: name}, storage, "getStorage");
-    return gettter({ ...storage[name] });
+export function getRepo(name) {
+    valideStorage({store: name}, repositories, "getRepo");
+    return gettter({ ...repositories[name] });
 }
 
 /**
@@ -53,16 +53,16 @@ export function getStorage(name) {
  * Warning: Storage data cannot be changed directly.
  * You can replace the values either with the "dispatch (...)" 
  * method or with an implementation via "manager".
- * @param {object} params the parameters of the action
+ * @param {object} action the parameters of the action
  * @return {object} state data
  * @public
  */
-export function getState(params) {
-    valideStorage(params, storage, "getState");
-    valideState(params, states, "getState");
+export function getState(action) {
+    valideStorage(action, repositories, "getState");
+    valideState(action, states, "getState");
 
-    const act = states[`"${params.state}"`];
-    return gettter({ ...act[params.store] });
+    const act = states[`"${action.state}"`];
+    return gettter({ ...act[action.store] });
 }
 
 /**
@@ -75,15 +75,15 @@ export function getState(params) {
  * as an argument and returns a new state.
  * 
  * Dispatch also returns several methods for working with states.
- * @param {object} params the parameters of the action
+ * @param {object} action the parameters of the action
  * @param {object | function} payload payload data or callback function
  * @return {object} returns methods: before, after, merge
  * @async
  * @public
  */
-export function dispatch(params, payload = {}) {
-    valideStorage(params, storage, "dispatch");
-    valideState(params, states, "dispatch");
+export function dispatch(action, payload = {}) {
+    valideStorage(action, repositories, "dispatch");
+    valideState(action, states, "dispatch");
 
     /** init voids */
     const voids = {
@@ -93,8 +93,8 @@ export function dispatch(params, payload = {}) {
     };
 
     (async function () {
-        const actionStr = `"${params.state}"`;
-        const act = states[actionStr][params.store];
+        const actionStr = `"${action.state}"`;
+        const act = states[actionStr][action.store];
         const prev = { ...act };
         const emit = emitters[actionStr];
 
@@ -119,8 +119,8 @@ export function dispatch(params, payload = {}) {
          * @public
          */
         voids.merge = () => {
-            if (`"${params.state}"` in states) {
-                storage[params.store] = {
+            if (`"${action.state}"` in states) {
+                repositories[action.store] = {
                     ...act,
                     ...payData
                 };
@@ -154,8 +154,8 @@ export function dispatch(params, payload = {}) {
         payData = await new Promise((resolve) => {
             activeMiddlewares(
                 {
-                    action: params.state,
-                    store: params.store,
+                    action: action.state,
+                    store: action.store,
                     payload: payData,
                     state: act
                 },
@@ -166,16 +166,16 @@ export function dispatch(params, payload = {}) {
         });
 
         /** update state data */
-        states[actionStr][params.store] = {
+        states[actionStr][action.store] = {
             ...act,
             ...payData
         };
 
         /** create dispatch action */
         emit.dispatchAction(actionStr, {
-            action: params.state,
-            store: params.store,
-            payload: states[actionStr][params.store] 
+            action: action.state,
+            store: action.store,
+            payload: states[actionStr][action.store] 
         })
     })();
 
@@ -187,26 +187,26 @@ export function dispatch(params, payload = {}) {
  * Allows you to subscribe to the state. and tracks its change. 
  * The first argument takes the parameters of the action. 
  * results can be obtained through the callback of the second argument or through the return promise.
- * @param {object} params the parameters of the action
+ * @param {object} action the parameters of the action
  * @param {function} fn callback
  * @callback
  * @async
  * @public
  */
-export async function subscribeToState(params, fn = () => { }) {
-    valideStorage(params, storage, "subscribeToState");
-    valideState(params, states, "subscribeToState");
+export async function subscribeToState(action, fn = () => { }) {
+    valideStorage(action, repositories, "subscribeToState");
+    valideState(action, states, "subscribeToState");
 
-    const emit = emitters[`"${params.state}"`];
+    const emit = emitters[`"${action.state}"`];
     const call = (data, resolve) => {
-        const g = getState({ store: data.store, state: params.state });
-        if (data.action === params.state && data.store === params.store) {
+        const g = getState({ store: data.store, state: action.state });
+        if (data.action === action.state && data.store === action.store) {
             resolve(g);
         }
     }
 
     const res = await new Promise((resolve) => {
-        const id = emit.subscribeAction(`"${params.state}"`, (data) => call(data, resolve));
+        const id = emit.subscribeAction(`"${action.state}"`, (data) => call(data, resolve));
         emit.removeSubscribeAction(id, true);
     });
 
@@ -218,13 +218,13 @@ export async function subscribeToState(params, fn = () => { }) {
  * The State Manager allows you to manage the storage and its state. 
  * Provides a set of methods for two-way merge, replace, copy, 
  * and other actions between the selected storage and state.
- * @param {object} params the parameters of the action
+ * @param {object} action the parameters of the action
  * @return {object} returns a set of methods
  * @public
  */
-export function newManager(params) {
-    valideStorage(params, storage, "newManager");
-    valideState(params, states, "newManager");
+export function newManager(action) {
+    valideStorage(action, repositories, "newManager");
+    valideState(action, states, "newManager");
 
     return {
         /**
@@ -232,9 +232,9 @@ export function newManager(params) {
          * @public
          */
         merge: () => {
-            storage[params.store] = {
-                ...storage[params.store],
-                ...states[`"${params.state}"`][params.store]
+            repositories[action.store] = {
+                ...repositories[action.store],
+                ...states[`"${action.state}"`][action.store]
             };
         },
 
@@ -243,9 +243,9 @@ export function newManager(params) {
          * @public
          */
         pull: () => {
-            states[`"${params.state}"`][params.store] = {
-                ...states[`"${params.state}"`][params.store],
-                ...storage[params.store]
+            states[`"${action.state}"`][action.store] = {
+                ...states[`"${action.state}"`][action.store],
+                ...repositories[action.store]
             };
         },
 
@@ -254,7 +254,7 @@ export function newManager(params) {
          * @public
          */
         replaceStore: () => {
-            storage[params.store] = { ...states[`"${params.state}"`][params.store] };
+            repositories[action.store] = { ...states[`"${action.state}"`][action.store] };
         },
 
         /**
@@ -262,22 +262,22 @@ export function newManager(params) {
          * @public
          */
         replaceState: () => {
-            states[`"${params.state}"`][params.store] = { ...storage[params.store] };
+            states[`"${action.state}"`][action.store] = { ...repositories[action.store] };
         },
 
         /**
          * This method will merge the data of the selected state 
          * with the data of the state specified in the arguments.
-         * @param {object} targetParams the action that you want to merge
+         * @param {object} targetAction the action that you want to merge
          * @public
          */
-        mergeState: (targetParams) => {
-            valideStorage(targetParams, storage, "newManager.mergeState");
-            valideState(targetParams, states, "newManager.mergeState");
+        mergeState: (targetAction) => {
+            valideStorage(targetAction, repositories, "newManager.mergeState");
+            valideState(targetAction, states, "newManager.mergeState");
 
-            states[`"${targetParams.state}"`][params.store] = {
-                ...states[`"${targetParams.state}"`][params.store],
-                ...states[`"${params.state}"`][params.store]
+            states[`"${targetAction.state}"`][action.store] = {
+                ...states[`"${targetAction.state}"`][action.store],
+                ...states[`"${action.state}"`][action.store]
             };
         },
 
@@ -289,10 +289,10 @@ export function newManager(params) {
          * @public
          */
         remove: () => {
-            delete storage[params.store];
-            Object.keys(states[`"${params.state}"`]).forEach((item) => {
-                if (item === params.store) {
-                    delete states[`"${params.state}"`][params.store];
+            delete repositories[action.store];
+            Object.keys(states[`"${action.state}"`]).forEach((item) => {
+                if (item === action.store) {
+                    delete states[`"${action.state}"`][action.store];
                 }
             });
         },
@@ -302,9 +302,9 @@ export function newManager(params) {
          * @public
          */
         removeEmptyState: () => {
-            Object.keys(states[`"${params.state}"`]).forEach((item) => {
+            Object.keys(states[`"${action.state}"`]).forEach((item) => {
                 if (Object.keys(item).length === 0) {
-                    delete states[`"${params.state}"`];
+                    delete states[`"${action.state}"`];
                 }
             });
         },
@@ -312,16 +312,16 @@ export function newManager(params) {
         /**
          * This method compares two states for identity
          * WARNING: states should not contain methods
-         * @param {object} targetParams the action that you want to compare
+         * @param {object} targetAction the action that you want to compare
          * @return {bool}
          * @public
          */
-        compareStates: (targetParams) => {
-            valideStorage(targetParams, storage, "newManager.compareStates");
-            valideState(targetParams, states, "newManager.compareStates");
+        compareStates: (targetAction) => {
+            valideStorage(targetAction, repositories, "newManager.compareStates");
+            valideState(targetAction, states, "newManager.compareStates");
             return compareObject(
-                states[`"${params.state}"`][params.store],
-                states[`"${targetParams.state}"`][params.store]
+                states[`"${action.state}"`][action.store],
+                states[`"${targetAction.state}"`][action.store]
             );
         },
 
@@ -333,8 +333,8 @@ export function newManager(params) {
          */
         compareWithState: () => {
             return compareObject(
-                storage[params.store],
-                states[`"${params.state}"`][params.store]
+                repositories[action.store],
+                states[`"${action.state}"`][action.store]
             );
         },
 
@@ -346,7 +346,7 @@ export function newManager(params) {
          * @public
          */
         compareStateWithInstance: (instance) => {
-            return compareObject(states[`"${params.state}"`][params.store], instance);
+            return compareObject(states[`"${action.state}"`][action.store], instance);
         },
 
         /**
@@ -357,7 +357,7 @@ export function newManager(params) {
          * @public
          */
         compareStoreWithInstance: (instance) => {
-            return compareObject(storage[params.store], instance);
+            return compareObject(repositories[action.store], instance);
         },
 
         /**
@@ -369,9 +369,9 @@ export function newManager(params) {
          * @public
          */
         clone: (name) => {
-            storage[name] = { ...storage[params.store] };
-            states[`"${params.state}"`][name] = {
-                ...states[`"${params.state}"`][params.store]
+            repositories[name] = { ...repositories[action.store] };
+            states[`"${action.state}"`][name] = {
+                ...states[`"${action.state}"`][action.store]
             };
         },
 
@@ -381,13 +381,13 @@ export function newManager(params) {
          * @public
          */
         update: () => {
-            dispatch(params, {});
+            dispatch(action, {});
         },
 
         /**
          * Returns parameters of the selected action
          * @public
          */
-        props: params
+        props: action
     };
 }
