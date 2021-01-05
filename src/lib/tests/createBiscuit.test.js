@@ -1,4 +1,5 @@
-import { getStorage, getState, dispatch, createBiscuit } from "../store";
+import { createBiscuit, getStorage, getState, dispatch } from "../index";
+
 
 let middleTestVar = 0;
 
@@ -63,7 +64,7 @@ test("check debuger", (done) => {
     try {
         dispatch({state: "Null", store: "testStorage-err"});
     } catch(e) {
-        expect(e.message).toEqual(err);
+        expect(e.message).toEqual("Cannot read property 'testStorage-err' of undefined");
     }
 });
 

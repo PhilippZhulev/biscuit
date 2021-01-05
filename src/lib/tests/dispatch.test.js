@@ -1,5 +1,4 @@
-
-import { createBiscuit, dispatch, getState, getStorage } from "../store";
+import { createBiscuit, getStorage, getState, dispatch } from "../index";
 
 const { testState1, testState2, testState3, testState4 } = createBiscuit({
     store: {

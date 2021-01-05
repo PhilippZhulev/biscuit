@@ -9,7 +9,7 @@ subscribeToState(modelSuccess, (payload) => {
     console.log(payload);
 });
 
-getState(modelInit).id = 10; 
+//getState(modelInit).id = 10; 
 
 function ExempleFirst({ id, dot, modelInit }) {
     const [count, setCount] = useState(0);

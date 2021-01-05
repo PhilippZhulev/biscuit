@@ -1,4 +1,3 @@
-import { actionCallbackValidator } from "../../services/validation";
 
 export function reduceLayer() {
     const connectors = [];
@@ -37,7 +36,6 @@ export function reduceLayer() {
          * @public
          */
         action: (act, fn) => {
-            actionCallbackValidator(act, fn);
             connectors.push({ act, fn });
         }
     };

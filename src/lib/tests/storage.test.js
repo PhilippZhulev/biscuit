@@ -1,4 +1,5 @@
-import { getStorage, addStorage, newStorage, createBiscuit } from "../store";
+import { createBiscuit, getStorage, addStorage, newStorage } from "../index";
+
 
 createBiscuit({
     store: {

@@ -1,4 +1,4 @@
-import { createBiscuit } from "../../lib/store";
+import { createBiscuit } from "../../lib/index";
 import slide from "./slider";
 import reduce from "./reduce";
 

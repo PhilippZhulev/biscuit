@@ -4,279 +4,57 @@
  * @version: 1.0.0
  * @license MIT
  */
-
-import { emitter } from "./emitter";
-import { debugCollection } from "./debuger";
 import {
-    storageRequire,
+    storage,
+    states,
+    emitters
+} from "./repositories";
+import {
+    activeMiddlewares,
+    gettter,
+    compareObject
+} from "./helper";
+import {
     valideStorage,
     valideState,
     valideType
 } from "./services/validation";
 
-/** debug messages */
-const messages = {
-    debugNotFound: "biscuit failed: debug type not found.",
-    storageNameError: (fnName) =>  `biscuit ${fnName} error: storage name is not a string.`,
-};
-
-/** actions collection */
-let collections = {};
-/** storage instance */
-const storage = {};
-/** states instance */
-const states = {};
-/** middlewares list */
-const middlewares = {};
-/** emitter Collection */
-export const emitters = {};
-
 /**
- * create log for biscuit debuger
- * @param {any} data is error -> new Error, is warn -> string
- * @param {string} type error || warn
+ * This method allows you to add new values to the store. 
+ * Accepts the storage name and object.
+ * @param {string} name storage name
+ * @param {object} instance object with added data
  * @public
  */
-export const createLog = function (data, type = "error", storeName) {
-    if (!debugCollection[storeName]) {
-        switch (type) {
-        case "error":
-            throw data;
-        case "warn":
-            console.warn(data);
-            break;
-        default:
-            throw messages.debugNotFound;
-        }
-        return;
-    }
-
-    for (let key in debugCollection) {
-        if (key === storeName) {
-            debugCollection[key](data);
-        }
-
-        if (!storeName) {
-            debugCollection[key](data);
-        }
-    }
-};
-
-/**
- * active middleware functions
- * @param {object} context action context
- * @param {function} fn callback
- * @private
- */
-async function activeMiddlewares(context, fn = () => null) {
-    if (middlewares[context.store]) {
-        await middlewares[context.store].forEach((middle) => {
-            middle(context, fn);
-        });
-    } else {
-        fn(context.payload);
-    }
+export function addStorage(name, instance) {
+    valideType(name, "string", "addStorage");
+    valideType(instance, "object", "newStorage", name);
+    valideStorage({store: name}, storage, "getStorage");
+    storage[name] = { ...storage[name], ...instance };
 }
 
 /**
- * This method is used to get the values of the object without the possibility of overwriting. 
- * by attempting to write generates an error.
- * @param {object} instance object to extract
- * @return {object} returns a modified copy of the object
- * @private
- */
-function gettter(instance) {
-    return Object.freeze({ ...instance });
-}
-
-/**
- * compare two objects
- * @param {object} firstState first object
- * @param {object} lastState last object
- * @return {bool}
- * @private
- */
-function compareObject(firstState, lastState) {
-    let propInFirst = 0;
-    let propInLast = 0;
-    let prop;
-
-    if (firstState === lastState) {
-        return true;
-    }
-
-    if (
-        firstState == null ||
-    typeof firstState !== "object" ||
-    lastState == null ||
-    typeof lastState !== "object"
-    ) {
-        return false;
-    }
-
-    for (prop in firstState) {
-        propInFirst += 1;
-    }
-
-    for (prop in lastState) {
-        propInLast += 1;
-
-        if (
-            !(prop in firstState) ||
-      !compareObject(firstState[prop], lastState[prop])
-        ) {
-            return false;
-        }
-    }
-
-    return propInFirst === propInLast;
-}
-
-/**
- * add data by store
- * @param {string} key store key
- * @param {object} instance setter object
+ * This method is used to get data from the storage by its key. 
+ * Warning: Storage data cannot be changed directly. 
+ * You can replace the values either with the "addStorage" 
+ * method or with state injection via "manager".
+ * @param {string} name storage name
+ * @return {object} storage data
  * @public
  */
-export function addStorage(key, instance) {
-    valideType(key, "string", "addStorage");
-    valideType(instance, "object", "newStorage", key);
-    valideStorage({store: key}, storage, "getStorage");
-    storage[key] = { ...storage[key], ...instance };
+export function getStorage(name) {
+    valideStorage({store: name}, storage, "getStorage");
+    return gettter({ ...storage[name] });
 }
 
 /**
- * init new storage
- * @param {string} name store key
- * @param {object} initial initial object
- * @public
- */
-export function newStorage(name, initial = {}) {
-    if (typeof name !== "string") {
-        createLog(
-            new Error(messages.storageNameError("newStorage")),
-            "error",
-        );
-    }
-    valideType(initial, "object", "newStorage", name);
-    storage[name] = initial;
-}
-
-/**
- * get data by key
- * @param {string} key store key
- * @return {object} key data
- * @public
- */
-export function getStorage(key) {
-    valideStorage({store: key}, storage, "getStorage");
-    return gettter({ ...storage[key] });
-}
-
-/**
- * create state to storage
- * @param {string} key store key
- * @return {object} voids
- * @public
- */
-export function createActionsTo(key) {
-    valideStorage({store: key}, storage, "createActionsTo");
-    return {
-    /** add state action name
-     * @param {string} action action name
-     * @public
-     */
-        state: (action) => {
-            const actionStr = `"${action}"`;
-
-            emitters[actionStr] = emitter(actionStr)
-            states[actionStr] = { [key]: storage[key] };
-            const actionParams = { state: action, store: key };
-
-            return { ...actionParams };
-        },
-        /** store key */
-        store: key
-    };
-}
-
-/**
- * create state collection
- * @param {any} action
- * @return {object} voids
- * @public
- */
-export function stateCollection(...action) {
-    const collection = {};
-    return {
-    /**
-     * init state collection
-     * @return {object} actions colecction
-     * @public
-     */
-        init: () => {
-            for (let i = 0; i < action.length; i++) {
-                collection[action[i].store].push({ ...action[i] });
-            }
-
-            return collection;
-        }
-    };
-}
-
-/**
- * merge state collections
- * @param {any} collection
- * @public
- */
-export function combineStateCollections(...collection) {
-    collection.forEach((item) => {
-        collections = { ...collections, ...item.init() };
-    });
-}
-
-/**
- * get state collections
- * @return {object} voids
- * @public
- */
-export const getStateCollection = {
-    /**
-   * get all collections
-   * @return {object} collections object
-   * @public
-   */
-    all: () => ({ ...collections }),
-
-    /**
-   * get collecton from store
-   * @param {string} state state name
-   * @return {array} state list
-   * @public
-   */
-    fromStore: (store) => ({ ...collections[store] }),
-
-    /**
-   * filtring collecton by state
-   * @param {string} stateName state name
-   * @return {array} state list
-   * @public
-   */
-    outOfState: (stateName) => {
-        let out = null;
-        Object.keys(collections).forEach((key) => {
-            out = collections[key].filter(({ state }) => state === stateName);
-        });
-
-        return out;
-    }
-};
-
-/**
- * get state to storage
- * @param {string} key store key
- * @param {string} action action, state name
- * @return {object}
+ * This method is needed to get the storage state
+ * Warning: Storage data cannot be changed directly.
+ * You can replace the values either with the "dispatch (...)" 
+ * method or with an implementation via "manager".
+ * @param {object} params the parameters of the action
+ * @return {object} state data
  * @public
  */
 export function getState(params) {
@@ -288,10 +66,19 @@ export function getState(params) {
 }
 
 /**
- * upadete storage state
- * @param {object} params store and state
- * @param {object} payload new data
- * @return {object} voids
+ * This is one of the most important methods. 
+ * allows you to asynchronously update and change the state of the storage.
+ * 
+ * The first argument accepts action parameters, 
+ * the second argument accepts an object with new data 
+ * or a callback function that returns the past state 
+ * as an argument and returns a new state.
+ * 
+ * Dispatch also returns several methods for working with states.
+ * @param {object} params the parameters of the action
+ * @param {object | function} payload payload data or callback function
+ * @return {object} returns methods: before, after, merge
+ * @async
  * @public
  */
 export function dispatch(params, payload = {}) {
@@ -318,7 +105,7 @@ export function dispatch(params, payload = {}) {
             : payload
 
         /**
-         * call before state change
+         * Call before state change
          * @param {function} fn callback
          * @public
          */
@@ -328,7 +115,7 @@ export function dispatch(params, payload = {}) {
         };
 
         /**
-         * merge state into storage
+         * Merge state into storage
          * @public
          */
         voids.merge = () => {
@@ -343,8 +130,9 @@ export function dispatch(params, payload = {}) {
         };
 
         /**
-         * call after state change
+         * Call after state change
          * @param {function} fn callback
+         * @async
          * @public
          */
         voids.after = async (fn) => {
@@ -395,9 +183,14 @@ export function dispatch(params, payload = {}) {
 }
 
 /**
- * state subscription
- * @param {object} params store and state
+ * This is one of the most important methods. 
+ * Allows you to subscribe to the state. and tracks its change. 
+ * The first argument takes the parameters of the action. 
+ * results can be obtained through the callback of the second argument or through the return promise.
+ * @param {object} params the parameters of the action
  * @param {function} fn callback
+ * @callback
+ * @async
  * @public
  */
 export async function subscribeToState(params, fn = () => { }) {
@@ -422,46 +215,11 @@ export async function subscribeToState(params, fn = () => { }) {
 }
 
 /**
- * initial actions
- * @param {object} store store params
- * @param {array} actions actions list
- * @public
- */
-export function initialActions(store, actions) {    
-    actions.forEach((item) => {
-        store.state(item);
-    });
-}
-
-/**
- * initial middleware
- * @param {string} store store name
- * @return {object} voids
- * @public
- */
-export function middleware(params) {
-    valideStorage(params, storage, "middleware");
-    const s = params.store;
-    return {
-        /**
-         * Add middleware function
-         * @param {function} fn middle function
-         * @public
-         */
-        add: (fn) => {
-            if (middlewares[s]) {
-                middlewares[s].push(fn);
-            } else {
-                middlewares[s] = [fn];
-            }
-        }
-    };
-}
-
-/**
- * managing storage and its states
- * @param {object} params store and state params
- * @return {object} voids
+ * The State Manager allows you to manage the storage and its state. 
+ * Provides a set of methods for two-way merge, replace, copy, 
+ * and other actions between the selected storage and state.
+ * @param {object} params the parameters of the action
+ * @return {object} returns a set of methods
  * @public
  */
 export function newManager(params) {
@@ -470,7 +228,7 @@ export function newManager(params) {
 
     return {
         /**
-         * merge state into storage
+         * This method will combine data from the state with data from the storage.
          * @public
          */
         merge: () => {
@@ -481,7 +239,7 @@ export function newManager(params) {
         },
 
         /**
-         * pull state into storage
+         * This method will merge data from the storage with data from the state.
          * @public
          */
         pull: () => {
@@ -492,7 +250,7 @@ export function newManager(params) {
         },
 
         /**
-         * replace storage into state
+         * This method will replace the data from the storage with state data.
          * @public
          */
         replaceStore: () => {
@@ -500,7 +258,7 @@ export function newManager(params) {
         },
 
         /**
-         * replace storage into state
+         * This method will replace the data from the state with the storage data.
          * @public
          */
         replaceState: () => {
@@ -508,8 +266,9 @@ export function newManager(params) {
         },
 
         /**
-         * combine states
-         * @param {string} state
+         * This method will merge the data of the selected state 
+         * with the data of the state specified in the arguments.
+         * @param {object} targetParams the action that you want to merge
          * @public
          */
         mergeState: (targetParams) => {
@@ -523,7 +282,10 @@ export function newManager(params) {
         },
 
         /**
-         * removes the repository and its copies from all states
+         * This method removes the storage and its copies from all states.
+         * WARNING: This method can be useful for optimization, 
+         * but it can make the code non-obvious, 
+         * which will lead to difficulties in support.
          * @public
          */
         remove: () => {
@@ -536,7 +298,7 @@ export function newManager(params) {
         },
 
         /**
-         * remove empty states
+         * This method deletes all states that do not contain data.
          * @public
          */
         removeEmptyState: () => {
@@ -548,9 +310,9 @@ export function newManager(params) {
         },
 
         /**
-         * compare two state
+         * This method compares two states for identity
          * WARNING: states should not contain methods
-         * @param {string} state state name
+         * @param {object} targetParams the action that you want to compare
          * @return {bool}
          * @public
          */
@@ -564,7 +326,7 @@ export function newManager(params) {
         },
 
         /**
-         * compare state and store
+         * Сompare state and store
          * WARNING: states should not contain methods
          * @return {bool}
          * @public
@@ -599,8 +361,11 @@ export function newManager(params) {
         },
 
         /**
-         * clone storage and state
-         * @param {string} name new name
+         * Clones the selected storage and its state.
+         * WARNING: It is best to avoid using this method, 
+         * as the best practice would be to do initialization of repositories in one place. 
+         * Copying the repository can lead to code support difficulties.
+         * @param {string} name name for the new storage
          * @public
          */
         clone: (name) => {
@@ -611,7 +376,8 @@ export function newManager(params) {
         },
 
         /**
-         * update state
+         * Updates the status of the repository. 
+         * This method is equivalent to dispatch(...)
          * @public
          */
         update: () => {
@@ -619,54 +385,9 @@ export function newManager(params) {
         },
 
         /**
-         * input params
+         * Returns parameters of the selected action
          * @public
          */
         props: params
     };
-}
-
-/**
- * add custom debuger
- * @param {string} store store name
- * @param {function} fn debugger callback function
- * @public
- */
-export function createDebuger(store, fn) {
-    valideStorage({ store }, storage, "createDebuger");
-    debugCollection[store] = fn;
-}
-
-/**
- * initial biscuit storage
- * @param {object} params storage settings
- * @return {object} action list
- * @public
- */
-export function createBiscuit(params) {
-    storageRequire(params.store, storage, "createBiscuit");
-    storageRequire(params.store.name, storage, "createBiscuit");
-
-    newStorage(params.store.name, params.store.initial);
-    const a = createActionsTo(params.store.name);
-    const stateList = {};
-
-    if (params.actions) {
-        for (let key in params.actions) {
-            stateList[key] = a.state(params.actions[key]);
-        }
-    }
-
-    if (params.middleware && params.middleware.length > 0) {
-        const middle = middleware(a);
-        for (let fn of params.middleware) {
-            middle.add(fn);
-        }
-    }
-
-    if (params.debuger) {
-        createDebuger(params.store.name, params.debuger);
-    }
-
-    return stateList;
 }

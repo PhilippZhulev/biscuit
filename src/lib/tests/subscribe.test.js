@@ -1,5 +1,5 @@
+import { createBiscuit, dispatch, subscribeToState} from "../index";
 
-import { createBiscuit, dispatch, subscribeToState } from "../store";
 
 const { testState1, testState2 } = createBiscuit({
     store: {

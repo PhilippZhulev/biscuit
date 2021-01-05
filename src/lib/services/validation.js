@@ -1,4 +1,4 @@
-import { createLog } from "../store";
+import { createLog } from "../debuger";
 
 const readError = (fn = "read") =>  `Biscuit -> ${fn} error: `;
 const messages = {

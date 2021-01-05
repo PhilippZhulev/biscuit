@@ -1,5 +1,4 @@
 import { runtime } from "./runtime";
-import { actionCallbackValidator } from "../../services/validation";
 
 export function slideLayer() {
     const connectors = [];
@@ -25,7 +24,6 @@ export function slideLayer() {
          * @public
          */
         take: (act, fn) => {
-            actionCallbackValidator(act, fn);
             connectors.push({ act, fn });
         }
     };

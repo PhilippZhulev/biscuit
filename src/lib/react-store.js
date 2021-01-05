@@ -6,7 +6,8 @@
  */
 
 import React, { memo, useEffect, useRef, useState } from "react";
-import { getState, dispatch, emitters } from "./store";
+import { getState, dispatch } from "./store";
+import { emitters } from "./repositories";
 import { sandbox, throttle, debounce } from "./utils";
 
 const boxThrottle = sandbox(throttle);
