@@ -1,6 +1,9 @@
-import { slides, buffers, connectNext } from "./core";
+import { slides } from "./core";
 import { reader } from "./reader";
 import { writer } from "./writer";
+import { connectNext } from "./utils"
+import { buffers } from "./buffers"
+
 
 /**
  * create generators from the method buffer

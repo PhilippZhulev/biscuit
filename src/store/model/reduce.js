@@ -1,6 +1,6 @@
-import { reduceLayer } from "../../lib/middlewares/reduce-layer";
+import { newReduceLayer } from "../../lib/middlewares/reduce-layer";
 
-const reduce = reduceLayer();
+const reduce = newReduceLayer();
 
 reduce.action("MODEL_INIT", (payload) => {
     if (payload.id) {

@@ -1,5 +1,5 @@
 
-export function reduceLayer() {
+export function newReduceLayer() {
     const connectors = [];
 
     return {

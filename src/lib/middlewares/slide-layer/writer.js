@@ -1,4 +1,4 @@
-import { buffers } from "./core";
+import { buffers } from "./buffers";
 import { slides } from "./core";
 
 export const writer = {
@@ -42,36 +42,36 @@ export const writer = {
         });
     },
 
-    extractToProvide: (action, outer) => {
+    extractProvide: (action, outer) => {
         buffers.runtime.push({
-            name: "extractToProvide",
+            name: "extractProvide",
             type: "writer",
             args: [outer, action],
             out: undefined
         });
     },
 
-    extractAllToProvide: (action, outer) => {
+    extractAllProvide: (action, outer) => {
         buffers.runtime.push({
-            name: "extractAllToProvide",
+            name: "extractAllProvide",
             type: "writer",
             args: [outer, action],
             out: undefined
         });
     },
 
-    extractRaceToProvide: (action, outer) => {
+    extractRaceProvide: (action, outer) => {
         buffers.runtime.push({
-            name: "extractRaceToProvide",
+            name: "extractRaceProvide",
             type: "writer",
             args: [outer, action],
             out: undefined
         });
     },
 
-    chanToProvide: (action, chan, fn = null, waitLen = 1) => {
+    chanProvide: (action, chan, fn = null, waitLen = 1) => {
         buffers.runtime.push({
-            name: "chanToProvide",
+            name: "chanProvide",
             type: "writer",
             args: [action, chan, fn, waitLen],
             out: undefined
@@ -92,6 +92,15 @@ export const writer = {
             name: "debounce",
             type: "writer",
             args: [fn, timeout, args],
+            out: undefined
+        });
+    },
+
+    extractChan: (ch, fn) => {
+        buffers.runtime.push({
+            name: "extractChan",
+            type: "writer",
+            args: [ch, fn],
             out: undefined
         });
     },

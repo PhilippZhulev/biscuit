@@ -115,16 +115,14 @@ export function dispatch(action, payload = {}) {
         };
 
         /**
-         * Merge state into storage
+         * Merge state into repository
          * @public
          */
         voids.merge = () => {
-            if (`"${action.state}"` in states) {
-                repositories[action.repo] = {
-                    ...act,
-                    ...payData
-                };
-            }
+            repositories[action.repo] = {
+                ...act,
+                ...payData
+            };
 
             return voids;
         };

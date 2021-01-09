@@ -1,6 +1,6 @@
 import { runtime } from "./runtime";
 
-export function slideLayer() {
+export function newSlideLayer() {
     const connectors = [];
 
     return {
@@ -9,7 +9,7 @@ export function slideLayer() {
          * @param {object} context context contains action parameters
          * @public
          */
-        connect: (context, callback) => {
+        connect: (context) => {
             for (let connector of connectors) {
                 if (connector.act === context.action) {
                     runtime(connector, context.payload, context.repo);

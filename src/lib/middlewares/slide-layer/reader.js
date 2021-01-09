@@ -1,5 +1,5 @@
 import { slides } from "./core";
-import { buffers } from "./core";
+import { buffers } from "./buffers";
 
 export const reader = {
     /**

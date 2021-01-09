@@ -1,68 +1,13 @@
 import { dispatch } from "../../store";
+import { emitter } from "../../emitter";
 import { sandbox, throttle, debounce } from "../../utils";
+import { getRepoBuffer } from "./buffers"
+import { getFunctionName, createChannel } from "./utils"
 
 const boxThrottle = sandbox(throttle);
 const boxDebounce = sandbox(debounce);
 
-export const buffers = {
-    repo: [],
-    result: {},
-    runtime: []
-};
-
-function createChannel(manager, buffer, state, proxy) {
-    return {
-        manager,
-        bufLen: buffer,
-        data: proxy,
-        state,
-        rewrite: () => {
-            state.done = 0;
-            state.finally = false;
-        },
-        each: () => proxy.filter((el) => el !== null),
-        add: (data) => (proxy[state.done] = data)
-    };
-}
-
-export function connectNext() {
-    buffers.runtime = [];
-}
-
-const getRepoBuffer = () => {
-    return buffers.repo[0];
-};
-
-export function getFunctionName(fn) {
-    const thenFirst = fn.toString().substr("function ".length);
-    const thenLast = thenFirst.substr(0, thenFirst.indexOf("("));
-
-    return thenLast;
-}
-
 export const slides = {
-    call: async function (fn, props) {
-        const fns = [];
-        await new Promise((resolve) => {
-            for (let fun of fn) {
-                queueMicrotask(() => {
-                    fns.push(fun(...props));
-                    if (fns.length === fn.length) {
-                        resolve(fns);
-                    }
-                });
-            }
-        });
-
-        if (fns.length === 1) {
-            return { data: fns[0], type: "single" };
-        } else if (fns.length > 1) {
-            return { data: fns, type: "multy" };
-        } else {
-            console.error("no functions to call");
-            return null;
-        }
-    },
 
     execute: (fn, args) => {
         return fn(args);
@@ -80,17 +25,17 @@ export const slides = {
         return Promise.all(includes.map((include) => include.out)).then(fn);
     },
 
-    extractToProvide: async (include, action) => {
+    extractProvide: async (include, action) => {
         dispatch({ repo: getRepoBuffer(), state: action }, await include.out);
     },
 
-    extractRaceToProvide: function (includes, action) {
+    extractRaceProvide: function (includes, action) {
         this.extractRace(includes, (data) => {
             dispatch({ repo: getRepoBuffer(), state: action }, data);
         });
     },
 
-    extractAllToProvide: function (includes, action) {
+    extractAllProvide: function (includes, action) {
         this.extractAll(includes, (data) => {
             dispatch({ repo: getRepoBuffer(), state: action }, data);
         });
@@ -98,23 +43,6 @@ export const slides = {
 
     provide: function (action, instance) {
         dispatch({ repo: getRepoBuffer(), state: action }, instance);
-    },
-
-    chanToProvide: async (action, ch, fn = null, waitLen = 1) => {
-        const resp = {
-            send: (data) => dispatch({ repo: getRepoBuffer(), state: action }, data)
-        };
-        ch.manager.addEventListener("slide.update.chan", () => {
-            if (fn && ch.state.done === waitLen) {
-                setTimeout(() => {
-                    fn(ch.data, resp);
-                }, 0);
-            } else if (ch.bufLen === 1) {
-                setTimeout(() => {
-                    resp.send(ch.data[0]);
-                }, 0);
-            }
-        });
     },
 
     resolve: async (action) => {
@@ -133,31 +61,69 @@ export const slides = {
         boxDebounce.run(this[getFunctionName(fn)], timeout)(...args);
     },
 
-    makeChan: (buffer = 1, initial = null) => {
+    call: async function (fn, props) {
+        const fns = [];
+        await new Promise((resolve) => {
+            for (let fun of fn) {
+                queueMicrotask(() => {
+                    fns.push(fun(...props));
+                    if (fns.length === fn.length) {
+                        resolve(fns);
+                    }
+                });
+            }
+        });
+
+        if (fns.length === 1) {
+            return { data: fns[0], type: "single" };
+        } else if (fns.length > 1) {
+            return { data: fns, type: "multy" };
+        } 
+
+        return null;
+    },
+
+    makeChan: () => {
+        const id = "chan_" + Date.now();
+        const manager = emitter(id);
+
         const state = { done: 0, finally: false };
-        const manager = new EventTarget();
-        const proxy = new Proxy(new Array(buffer).fill(initial), {
+        
+        let buffer = {
+            data: null
+        };
 
-            set: (target, prop, value) => {
-                if (state.done !== buffer) {
-                    state.done++;
-                    state.finally = state.done === buffer;
-                    manager.dispatchEvent(new CustomEvent("slide.update.chan"));
-                    target[prop] = value;
-                } else {
-                    console.error("Write error:", "Attempt to write to a filled channel");
-                }
-                return true;
-            },
+        const add = (value) => {
+            state.finally = true;
+            buffer.data = value;
+            manager.dispatchAction(id, {});
+            
+            return true;
+        }
 
-            get: (traget, prop) => {
-                setTimeout(() => {
-                    traget[prop] = null;
-                }, 0);
-                return traget[prop];
+        return createChannel({manager, state, buffer, id, add});
+    },
+
+    chanProvide: async (action, ch, fn) => {
+        const resp = {
+            send: (data) => dispatch({ repo: getRepoBuffer(), state: action }, data)
+        };
+
+        ch.manager.subscribeAction(ch.id, () => {
+            if (fn) {
+                fn(ch.get(), resp);
+                return;
             }
 
+            resp.send(ch.get());
         });
-        return createChannel(manager, buffer, state, proxy);
+    },
+
+    extractChan: (ch, fn) => {
+        ch.manager.subscribeAction(ch.id, () => {
+            if (ch.state.finally) {
+                fn(ch.get());
+            }
+        });
     }
 };
