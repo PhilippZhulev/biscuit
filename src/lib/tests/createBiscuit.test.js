@@ -1,9 +1,9 @@
-import { createBiscuit, getRepo, getState, dispatch } from "../index";
+import { createStore, getRepo, getState, dispatch } from "../index";
 import { createLog } from "../debuger";
 
 let middleTestVar = 0;
 
-const { testState1, testState2 } = createBiscuit({
+const { testState1, testState2 } = createStore({
     repo: {
         name: "testStorage",
         initial: { id: 200 }
@@ -47,7 +47,7 @@ test("check middleware", async () => {
 
 test("check debuger", (done) => {
     const log = "test-log"
-    createBiscuit({
+    createStore({
         repo: {
             name: "testStorage-err",
             initial: { id: 200 }
@@ -69,7 +69,7 @@ test("check debuger", (done) => {
 });
 
 test("check debuger", () => {
-    const { testStateInitial1, testStateInitial2, testStateInitial3 } = createBiscuit({
+    const { testStateInitial1, testStateInitial2, testStateInitial3 } = createStore({
         repo: {
             name: "repo-1-test",
             initial: { id: 200 }
@@ -95,7 +95,7 @@ test("check debuger", () => {
 
 it("no storage error", () => {
     try {
-        createBiscuit({})
+        createStore({})
     } catch (e) {
         expect(e.message).toEqual("Biscuit -> [object Object] error: \"storage.name\" require field.");
     }
@@ -103,7 +103,7 @@ it("no storage error", () => {
 
 it("no storage name error", () => {
     try {
-        createBiscuit({
+        createStore({
             repo: {
                 initial: { id: 200 }
             },
@@ -115,7 +115,7 @@ it("no storage name error", () => {
 
 it("storage store.name type error", () => {
     try {
-        createBiscuit({
+        createStore({
             repo: {
                 name: 1,
             },
@@ -127,7 +127,7 @@ it("storage store.name type error", () => {
 
 it("action type error", () => {
     try {
-        createBiscuit({
+        createStore({
             repo: {
                 name: "testInitial2",
                 initial: {}
@@ -135,13 +135,13 @@ it("action type error", () => {
             states: []
         })
     } catch (e) {
-        expect(e.message).toEqual("Biscuit -> createBiscuit error: field \"actions\" should be a \"object\".");
+        expect(e.message).toEqual("Biscuit -> createStore error: field \"actions\" should be a \"object\".");
     }
 });
 
 it("action field type error", () => {
     try {
-        createBiscuit({
+        createStore({
             repo: {
                 name: "testInitial3",
                 initial: {}
@@ -151,13 +151,13 @@ it("action field type error", () => {
             }
         })
     } catch (e) {
-        expect(e.message).toEqual("Biscuit -> createBiscuit error: field \"testAction\" should be a \"string\".");
+        expect(e.message).toEqual("Biscuit -> createStore error: field \"testAction\" should be a \"string\".");
     }
 });
 
 it("no middleware type error", () => {
     try {
-        createBiscuit({
+        createStore({
             repo: {
                 name: "testInitial3",
                 initial: {}
@@ -168,14 +168,14 @@ it("no middleware type error", () => {
             middleware: {}
         })
     } catch (e) {
-        expect(e.message).toEqual("Biscuit -> createBiscuit error: field \"middleware\" should be a \"array\".");
+        expect(e.message).toEqual("Biscuit -> createStore error: field \"middleware\" should be a \"array\".");
     }
 });
 
 
 it("no middleware field type error", () => {
     try {
-        createBiscuit({
+        createStore({
             repo: {
                 name: "testInitial4",
                 initial: {}
@@ -188,13 +188,13 @@ it("no middleware field type error", () => {
             ]
         })
     } catch (e) {
-        expect(e.message).toEqual("Biscuit -> createBiscuit error: field \"0\" should be a \"function\".");
+        expect(e.message).toEqual("Biscuit -> createStore error: field \"0\" should be a \"function\".");
     }
 });
 
 it("no debuger type error", () => {
     try {
-        createBiscuit({
+        createStore({
             repo: {
                 name: "testInitial5",
                 initial: {}
@@ -205,6 +205,6 @@ it("no debuger type error", () => {
             debuger: []
         })
     } catch (e) {
-        expect(e.message).toEqual("Biscuit -> createBiscuit error: field \"debuger\" should be a \"function\".");
+        expect(e.message).toEqual("Biscuit -> createStore error: field \"debuger\" should be a \"function\".");
     }
 });

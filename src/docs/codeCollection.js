@@ -1,9 +1,9 @@
 
 export const startReactCodeInit = 
 `
-import { createBiscuit } from "@biscuit-store/core";
+import { createStore } from "@biscuit-store/core";
 
-export const { counterAdd } = createBiscuit({
+export const { counterAdd } = createStore({
   repo: {
     name: "counter",
     initial: { value: 0 }

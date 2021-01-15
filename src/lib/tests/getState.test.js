@@ -1,7 +1,7 @@
 
-import { createBiscuit, getState, dispatch } from "../index";
+import { createStore, getState, dispatch } from "../index";
 
-const { testState1, testState2 } = createBiscuit({
+const { testState1, testState2 } = createStore({
     repo: {
         name: "testStore",
         initial: { value: "test" }

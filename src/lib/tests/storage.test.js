@@ -1,7 +1,7 @@
-import { createBiscuit, getRepo, addRepo, newRepo } from "../index";
+import { createStore, getRepo, addRepo, newRepo } from "../index";
 
 
-createBiscuit({
+createStore({
     repo: {
         name: "testStore",
         initial: { value: "test", status: 200 }

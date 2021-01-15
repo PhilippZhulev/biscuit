@@ -1,8 +1,8 @@
-import { createBiscuit, newRepo } from "./creator";
+import { createStore, newRepo } from "./creator";
 import { newManager, dispatch, getRepo, getState, addRepo, subscribeToState } from "./store";
 
 export {
-    createBiscuit,
+    createStore,
     newManager,
     dispatch,
     getRepo,

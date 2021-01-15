@@ -7,6 +7,16 @@ export function emitter(action) {
     let taskId = 0;
 
     return {
+
+        /**
+         * This method allows you to subscribe to an action. 
+         * Creates a task that puts its own callback function,
+         * which should then be started by the dispatcher
+         * @param {string} stateName name of the state to subscribe to
+         * @param {function} callback callback function that will be started by the dispatcher
+         * @return {string} returned task id
+         * @public
+        */
         subscribeAction: (stateName, fn) => {
             if (stateName === action) {
                 taskId = taskId + 1; 
@@ -24,6 +34,16 @@ export function emitter(action) {
                 throw new Error(messages.notAction("subscribeAction", stateName))
             }
         },
+
+        /**
+         * Removes the task from the buffer 
+         * thereby unsubscribing from the state.
+         * @param {string} id task id
+         * @param {boolean} isLaunch If true, the method will delete the task 
+         * without only if it has worked at least once.
+         * @return {string} returned task id
+         * @public
+        */
         removeSubscribeAction: (id, isLaunch = false) => {
             const targetIndex = taskBuffer.findIndex(
                 (el) => {
@@ -40,7 +60,16 @@ export function emitter(action) {
                 taskBuffer.splice(targetIndex, 1);
             }
         },
-        dispatchAction: (stateName, data) => {
+
+        /**
+        * Starts all tasks that match the specified state name
+        * and passes data to their callback functions.
+        * @param {string} stateName name of the state to subscribe to
+        * @param {object} data the transmitted data
+        * @async
+        * @public
+        */
+        dispatchAction: async (stateName, data) => {
             if (stateName === action) {
                 for (let task of taskBuffer) {
                     if (task.name === stateName && task.data !== data) {

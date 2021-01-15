@@ -1,6 +1,6 @@
 import { runtime } from "./runtime";
 
-export function newSlideLayer() {
+export function newSlide() {
     const connectors = [];
 
     return {

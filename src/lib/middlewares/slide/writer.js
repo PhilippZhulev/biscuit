@@ -1,7 +1,17 @@
 import { buffers } from "./buffers";
 import { slides } from "./core";
 
+/** Set of methods for writing */
 export const writer = {
+
+    /**
+     * This method creates a state change task 
+     * similar to the built in dispatch methodThis 
+     * method creates a state change task similar 
+     * to the built in "dispatch" method
+     * @param {string} action state name
+     * @param {object} instance data object
+     */
     provide: (action, instance) => {
         buffers.runtime.push({
             name: "provide",
@@ -11,37 +21,22 @@ export const writer = {
         });
     },
 
+    /**
+     * This method creates a task to call a state change event, 
+     * without changing the data.
+     * @param {string} action state name
+     */
     resolve: async (action) => {
         await slides.resolve(action);
     },
 
-    extract: (include, callback) => {
-        buffers.runtime.push({
-            name: "extract",
-            type: "writer",
-            args: [include, callback],
-            out: undefined
-        });
-    },
-
-    extractRace: (includes, callback) => {
-        buffers.runtime.push({
-            name: "extractRace",
-            type: "writer",
-            args: [includes, callback],
-            out: undefined
-        });
-    },
-
-    extractAll: (includes, callback) => {
-        buffers.runtime.push({
-            name: "extractAll",
-            type: "writer",
-            args: [includes, callback],
-            out: undefined
-        });
-    },
-
+    /**
+     * This method creates a task to change the state, 
+     * the second parameter takes the task from the "execute" method 
+     * and retrieves data from it.
+     * @param {string} action state name
+     * @param {string} outer execute task
+     */
     extractProvide: (action, outer) => {
         buffers.runtime.push({
             name: "extractProvide",
@@ -51,6 +46,9 @@ export const writer = {
         });
     },
 
+    /**
+     * 
+     */
     extractAllProvide: (action, outer) => {
         buffers.runtime.push({
             name: "extractAllProvide",
@@ -74,33 +72,6 @@ export const writer = {
             name: "chanProvide",
             type: "writer",
             args: [action, chan, fn, waitLen],
-            out: undefined
-        });
-    },
-
-    throttle: (fn, timeout, ...args) => {
-        buffers.runtime.push({
-            name: "throttle",
-            type: "writer",
-            args: [fn, timeout, args],
-            out: undefined
-        });
-    },
-
-    debounce: (fn, timeout, ...args) => {
-        buffers.runtime.push({
-            name: "debounce",
-            type: "writer",
-            args: [fn, timeout, args],
-            out: undefined
-        });
-    },
-
-    extractChan: (ch, fn) => {
-        buffers.runtime.push({
-            name: "extractChan",
-            type: "writer",
-            args: [ch, fn],
             out: undefined
         });
     },

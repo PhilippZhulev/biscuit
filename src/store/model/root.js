@@ -1,8 +1,8 @@
-import { createBiscuit } from "../../lib/index";
+import { createStore } from "../../lib/index";
 import slide from "./slider";
-import reduce from "./reduce";
+import adapter from "./adapter";
 
-export const { modelInit, modelSuccess } = createBiscuit({
+export const { modelInit, modelSuccess } = createStore({
     repo: {
         name: "model",
         initial: { id: 0, dot: "", data: null }
@@ -17,7 +17,7 @@ export const { modelInit, modelSuccess } = createBiscuit({
                 context.state.dot += ".";
             }
         },
-        reduce.connect,
+        adapter.connect,
         slide.connect
     ]
 });

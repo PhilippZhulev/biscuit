@@ -17,7 +17,7 @@ import {
 /** debug messages */
 const messages = {
     storageNameError: (fnName) => `biscuit ${fnName} error: storage name is not a string.`,
-    stateTypeError: `biscuit createBiscuit error: the status field type must be either a string or an object.`,
+    stateTypeError: `biscuit createStore error: the status field type must be either a string or an object.`,
 };
 
 /**
@@ -200,9 +200,9 @@ export function createDebuger(repo, fn) {
  * @return {object} returns a set of actions
  * @public
  */
-export function createBiscuit(params) {
-    storageRequire(params.repo, repositories, "createBiscuit");
-    storageRequire(params.repo.name, repositories, "createBiscuit");
+export function createStore(params) {
+    storageRequire(params.repo, repositories, "createStore");
+    storageRequire(params.repo.name, repositories, "createStore");
 
     /** Create a new storage */
     newRepo(params.repo.name, params.repo.initial);
