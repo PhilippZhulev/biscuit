@@ -1,23 +1,23 @@
-import { emitter } from "./emitter";
 import { debugCollection, createLog } from "./debuger";
 import {
     collections,
     repositories,
     states,
     middlewares,
-    emitters
 } from "./repositories";
 
 import {
-    storageRequire,
-    valideStorage,
-    valideType
-} from "./services/validation";
+    dispatch,
+    subscribeToState,
+    getState,
+    getRepo,
+    subscribeToStore,
+    addRepo,
+} from "./store"
 
 /** debug messages */
 const messages = {
     storageNameError: (fnName) => `biscuit ${fnName} error: storage name is not a string.`,
-    stateTypeError: `biscuit createStore error: the status field type must be either a string or an object.`,
 };
 
 /**
@@ -31,41 +31,82 @@ const messages = {
 export function newRepo(name, initial = {}) {
     if (typeof name !== "string") {
         createLog(
-            new Error(messages.storageNameError("newRepo")),
-            "error",
+            new Error(messages.storageNameError("newRepo"))
         );
     }
-    valideType(initial, "object", "newRepo", name);
-    repositories[name] = initial;
+    repositories[name] = { content : initial };
+
+    return {
+        repo: name,
+    }
 }
 
 /**
  * This method binds states to the storage via the "add" method.
  * Gets the storage name string as an argument.
- * @param {string} name name of the linked storage
+ * @param {object} params name of the linked storage
  * @return {object} returns the "add" method
  * @public
  */
-export function createStateTo(name) {
-    valideStorage({repo: name}, repositories, "createActionsTo");
+export function createStateTo(params) {
+    const createNewState = (settings) => {
+        if (!settings.branch) {
+            return repositories[params.repo]
+        }
+
+        return {
+            content: {
+                ...repositories[params.repo].content,
+                ...settings.initial
+            }
+        }
+    }
+
     return {
-    /** This method binds the state to the selected storagee
-     * @param {string} action state name
-     * @public
-     */
-        bind: (action, initial = {}) => {
+        /** This method binds the state to the selected storagee
+         * @param {string} action state name
+         * @public
+         */
+        bind: (action, settings = { branch: false, initial: {} }) => {
             const actionStr = `"${action}"`;
 
-            emitters[actionStr] = emitter(actionStr)
             states[actionStr] = {
                 ...states[actionStr],
-                [name]: { ...repositories[name], ...initial }
+                [params.repo]: createNewState(settings)
             };
 
-            return { ...{ state: action, repo: name } };
+            const actionParams = {
+                repo: params.repo,
+                state: action
+            };
+
+            return {
+                ...actionParams,
+                /**
+                 * Update state
+                 * @param {object} payload
+                 * @public
+                */
+                dispatch: (payload = {}) =>
+                    dispatch(actionParams, payload),
+                /**
+                 * Subscribe to state
+                 * @param {function} fn callback
+                 * @public
+                */
+                subscribe: (fn) => 
+                    subscribeToState(actionParams, fn),
+                
+                /** 
+                 * Get state 
+                 * @public
+                 */
+                getState: () => 
+                    getState(actionParams)
+            };
         },
         /** repository key */
-        repo: name
+        repo: params.repo
     };
 }
 
@@ -73,7 +114,7 @@ export function createStateTo(name) {
  * This helper method takes the first parameter "createactionsTo" 
  * and adds actions to it from the string array of the second argument.
  * @param {object} createActions createactionsto(storage name) method
- * @param {array} actions actions string array
+ * @param {array[string]} actions actions string array
  * @public
  */
 export function initialActions(createActions, actions) {    
@@ -84,7 +125,7 @@ export function initialActions(createActions, actions) {
 
 /**
  * This helper method converts the actions received via the argument to an array
- * @param {any} action accepts multiple actions as arguments
+ * @param {args[string]} action accepts multiple actions as arguments
  * @return {object} returns the "compile" method
  * @public
  */
@@ -109,7 +150,7 @@ export function stateCollection(...action) {
 /**
  * This helper method can combine multiple collections of actions.
  * Accepts "stateCollection(...action)"
- * @param {any} collection array actions
+ * @param {args[object]} collection array actions
  * @public
  */
 export function combineStateCollections(...collection) {
@@ -142,7 +183,7 @@ export const getStateCollection = {
     /**
    * Get the result filtered by state name
    * @param {string} stateName state name
-   * @return {array} state list
+   * @return {array[object]} state list
    * @public
    */
     outOfState: (stateName) => {
@@ -162,7 +203,6 @@ export const getStateCollection = {
  * @public
  */
 export function middleware(action) {
-    valideStorage(action, repositories, "middleware");
     const s = action.repo;
     return {
         /**
@@ -188,7 +228,6 @@ export function middleware(action) {
  * @public
  */
 export function createDebuger(repo, fn) {
-    valideStorage({ repo }, repositories, "createDebuger");
     debugCollection[repo] = fn;
 }
 
@@ -201,25 +240,34 @@ export function createDebuger(repo, fn) {
  * @public
  */
 export function createStore(params) {
-    storageRequire(params.repo, repositories, "createStore");
-    storageRequire(params.repo.name, repositories, "createStore");
-
     /** Create a new storage */
-    newRepo(params.repo.name, params.repo.initial);
-    const a = createStateTo(params.repo.name);
-    const stateList = {};
+    const repo  = newRepo(params.repo.name, params.repo.initial);
+    const a = createStateTo(repo);
+    
+    const output = {
+        store: {
+            subscribe: (fn) =>
+                subscribeToStore(params.repo.name, fn),
+            get: () => getRepo(params.repo.name),
+            add: (instance) => addRepo(params.repo.name, instance),
+        },
+        actions: {}
+    };
 
     /** Adding States to the repository */
     if (params.states) {
         for (let key in params.states) {
             const param = params.states[key];
             const paramType = typeof param === "string"
-            stateList[key] = a.bind(
+            output.actions[key] = a.bind(
                 paramType ? param : param.name,
-                paramType ? {} : param.initial
+                paramType
+                    ? {}
+                    : { initial: param.initial, branch: param.branch }
             );
         }
     }
+
     /** Adding middleware to the repository */
     if (params.middleware && params.middleware.length > 0) {
         const middle = middleware(a);
@@ -233,5 +281,5 @@ export function createStore(params) {
         createDebuger(params.repo.name, params.debuger);
     }
 
-    return stateList;
+    return output;
 }

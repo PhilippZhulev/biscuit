@@ -6,5 +6,3 @@ export const repositories = {};
 export const states = {};
 /** middlewares list */
 export const middlewares = {};
-/** emitter Collection */
-export const emitters = {};

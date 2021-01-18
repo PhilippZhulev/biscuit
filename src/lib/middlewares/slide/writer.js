@@ -32,10 +32,10 @@ export const writer = {
 
     /**
      * This method creates a task to change the state, 
-     * the second parameter takes the task from the "execute" method 
+     * the second parameter takes the task from the "read.execute" method 
      * and retrieves data from it.
      * @param {string} action state name
-     * @param {string} outer execute task
+     * @param {object} outer execute task
      */
     extractProvide: (action, outer) => {
         buffers.runtime.push({
@@ -47,17 +47,28 @@ export const writer = {
     },
 
     /**
-     * 
+     * This method creates a task to change the state, 
+     * the second parameter takes an array of tasks 
+     * from the " read.executeall" and retrieves data when it is ready.
+     * @param {string} action state name
+     * @param {array[object]} outers execute tasks
      */
-    extractAllProvide: (action, outer) => {
+    extractAllProvide: (action, outers) => {
         buffers.runtime.push({
             name: "extractAllProvide",
             type: "writer",
-            args: [outer, action],
+            args: [outers, action],
             out: undefined
         });
     },
 
+    /**
+     * This method creates a task to change the state, 
+     * the second parameter takes an array of tasks from the " 
+     * read.executeall" and retrieves data from the task that won the race.
+     * @param {string} action state name
+     * @param {array[object]} outers execute tasks
+    */
     extractRaceProvide: (action, outer) => {
         buffers.runtime.push({
             name: "extractRaceProvide",
@@ -67,14 +78,25 @@ export const writer = {
         });
     },
 
-    chanProvide: (action, chan, fn = null, waitLen = 1) => {
+    /**
+     * This method creates a task to change the state, 
+     * the second parameter accepts the channel and retrieves data from it. 
+     * The third parameter can specify a callback function
+     * that will return the channel data and the sending method, 
+     * in this function you can parse the received data for example.
+     * @param {string} action state name
+     * @param {object} chan channel
+     * @param {function(data, send)} fn callback function
+     */
+    chanProvide: (action, chan, fn = null) => {
         buffers.runtime.push({
             name: "chanProvide",
             type: "writer",
-            args: [action, chan, fn, waitLen],
+            args: [action, chan, fn],
             out: undefined
         });
     },
 
+    /** create chanel */
     makeChan: slides.makeChan
 };

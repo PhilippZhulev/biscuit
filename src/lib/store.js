@@ -7,18 +7,30 @@
 import {
     repositories,
     states,
-    emitters
 } from "./repositories";
 import {
-    activeMiddlewares,
+    emitter,
+} from "./emitter";
+import {
     gettter,
+    getStateRepo,
+    getRepository,
     compareObject
 } from "./helper";
-import {
-    valideStorage,
-    valideState,
-    valideType
-} from "./services/validation";
+import { dispatchProto, dispatchInitMiddleware } from "./dispatch";
+
+const subscriber = async (repo, fn, store) => {
+    const call = (resolve) => {
+        const data = getRepo(repo);
+        resolve(data);
+        fn(data);
+    }
+
+    const res = await new Promise((resolve) => {
+        emitter.subscribeAction(repo, () => call(resolve), store);
+    });
+    return res;
+}
 
 /**
  * This method allows you to add new values to the repository. 
@@ -28,10 +40,10 @@ import {
  * @public
  */
 export function addRepo(name, instance) {
-    valideType(name, "string", "addRepo");
-    valideType(instance, "object", "newRepo", name);
-    valideStorage({repo: name}, repositories, "getRepo");
-    repositories[name] = { ...repositories[name], ...instance };
+    repositories[name].content = {
+        ...getRepository(name),
+        ...instance
+    };
 }
 
 /**
@@ -44,8 +56,7 @@ export function addRepo(name, instance) {
  * @public
  */
 export function getRepo(name) {
-    valideStorage({repo: name}, repositories, "getRepo");
-    return gettter({ ...repositories[name] });
+    return gettter({ ...getRepository(name) });
 }
 
 /**
@@ -58,11 +69,7 @@ export function getRepo(name) {
  * @public
  */
 export function getState(action) {
-    valideStorage(action, repositories, "getState");
-    valideState(action, states, "getState");
-
-    const act = states[`"${action.state}"`];
-    return gettter({ ...act[action.repo] });
+    return gettter({ ...getStateRepo(action).content });
 }
 
 /**
@@ -82,99 +89,36 @@ export function getState(action) {
  * @public
  */
 export function dispatch(action, payload = {}) {
-    valideStorage(action, repositories, "dispatch");
-    valideState(action, states, "dispatch");
-
-    /** init voids */
-    const voids = {
-        merge: null,
-        before: null,
-        after: null
-    };
+    let voids = {};
 
     (async function () {
-        const actionStr = `"${action.state}"`;
-        const act = states[actionStr][action.repo];
+        const act = getStateRepo(action).content;
         const prev = { ...act };
-        const emit = emitters[actionStr];
-
+        
         /** if the function 
          * then pass the current state to the callback  */
         let payData = typeof payload === "function"
             ? payload(prev)
             : payload
-
-        /**
-         * Call before state change
-         * @param {function} fn callback
-         * @public
-         */
-        voids.before = (fn) => {
-            fn(prev);
-            return voids;
-        };
-
-        /**
-         * Merge state into repository
-         * @public
-         */
-        voids.merge = () => {
-            repositories[action.repo] = {
-                ...act,
-                ...payData
-            };
-
-            return voids;
-        };
-
-        /**
-         * Call after state change
-         * @param {function} fn callback
-         * @async
-         * @public
-         */
-        voids.after = async (fn) => {
-            const call = function (resolve) {
-                resolve({
-                    ...act,
-                    ...payData
-                });
-            }
-
-            await new Promise((resolve) => {
-                const id = emit.subscribeAction(actionStr, () => call(resolve));
-                emit.removeSubscribeAction(id, true);
-            }).then(fn)
-            return voids;
-        };
-
-        /** initial middlewares */
-        payData = await new Promise((resolve) => {
-            activeMiddlewares(
-                {
-                    action: action.state,
-                    repo: action.repo,
-                    payload: payData,
-                    state: act
-                },
-                (newPayload) => {
-                    resolve(newPayload);
-                }
-            );
+        
+        dispatchProto.call(voids, {
+            action,
+            prev,
+            act,
+            payData
         });
 
+        /** initial middlewares */
+        payData = await dispatchInitMiddleware({action, payData, act});
+
         /** update state data */
-        states[actionStr][action.repo] = {
+        getStateRepo(action).content = {
             ...act,
             ...payData
         };
 
         /** create dispatch action */
-        emit.dispatchAction(actionStr, {
-            action: action.state,
-            repo: action.repo,
-            payload: states[actionStr][action.repo] 
-        })
+        emitter.dispatchAction(action)
     })();
 
     return voids;
@@ -191,25 +135,23 @@ export function dispatch(action, payload = {}) {
  * @async
  * @public
  */
-export async function subscribeToState(action, fn = () => { }) {
-    valideStorage(action, repositories, "subscribeToState");
-    valideState(action, states, "subscribeToState");
+export async function subscribeToState(action, fn = () => {}) {
+    return subscriber(action.repo, fn, action.store);
+}
 
-    const emit = emitters[`"${action.state}"`];
-    const call = (data, resolve) => {
-        const g = getState({ repo: data.repo, state: action.state });
-        if (data.action === action.state && data.repo === action.repo) {
-            resolve(g);
-        }
-    }
-
-    const res = await new Promise((resolve) => {
-        const id = emit.subscribeAction(`"${action.state}"`, (data) => call(data, resolve));
-        emit.removeSubscribeAction(id, true);
-    });
-
-    fn(res);
-    return res;
+/**
+ * This is one of the most important methods. 
+ * Allows you to subscribe to the store. and tracks its change. 
+ * The first argument takes the name store. 
+ * results can be obtained through the callback of the second argument or through the return promise.
+ * @param {object} repo repository name
+ * @param {function} fn callback
+ * @callback
+ * @async
+ * @public
+ */
+export async function subscribeToStore(repo, fn = () => {}) {;
+    return subscriber(repo, fn);
 }
 
 /**
@@ -220,19 +162,16 @@ export async function subscribeToState(action, fn = () => { }) {
  * @return {object} returns a set of methods
  * @public
  */
-export function newManager(action) {
-    valideStorage(action, repositories, "newManager");
-    valideState(action, states, "newManager");
-
+export function manager(action) {
     return {
         /**
          * This method will combine data from the state with data from the storage.
          * @public
          */
         merge: () => {
-            repositories[action.repo] = {
-                ...repositories[action.repo],
-                ...states[`"${action.state}"`][action.repo]
+            repositories[action.repo].content = {
+                ...getRepository(action.repo),
+                ...getStateRepo(action).content
             };
         },
 
@@ -241,9 +180,9 @@ export function newManager(action) {
          * @public
          */
         pull: () => {
-            states[`"${action.state}"`][action.repo] = {
-                ...states[`"${action.state}"`][action.repo],
-                ...repositories[action.repo]
+            getStateRepo(action).content = {
+                ...getStateRepo(action).content,
+                ...getRepository(action.repo)
             };
         },
 
@@ -252,7 +191,9 @@ export function newManager(action) {
          * @public
          */
         replaceRepo: () => {
-            repositories[action.repo] = { ...states[`"${action.state}"`][action.repo] };
+            repositories[action.repo].content = {
+                ...getStateRepo(action).content
+            };
         },
 
         /**
@@ -260,7 +201,9 @@ export function newManager(action) {
          * @public
          */
         replaceState: () => {
-            states[`"${action.state}"`][action.repo] = { ...repositories[action.repo] };
+            getStateRepo(action).content = {
+                ...getRepository(action.repo)
+            };
         },
 
         /**
@@ -270,12 +213,12 @@ export function newManager(action) {
          * @public
          */
         mergeState: (targetAction) => {
-            valideStorage(targetAction, repositories, "newManager.mergeState");
-            valideState(targetAction, states, "newManager.mergeState");
-
-            states[`"${targetAction.state}"`][action.repo] = {
-                ...states[`"${targetAction.state}"`][action.repo],
-                ...states[`"${action.state}"`][action.repo]
+            getStateRepo(action).content = {
+                ...getStateRepo({
+                    state: targetAction.state,
+                    repo: action.repo
+                }).content,
+                ...getStateRepo(action).content
             };
         },
 
@@ -296,18 +239,6 @@ export function newManager(action) {
         },
 
         /**
-         * This method deletes all states that do not contain data.
-         * @public
-         */
-        removeEmptyState: () => {
-            Object.keys(states[`"${action.state}"`]).forEach((item) => {
-                if (Object.keys(item).length === 0) {
-                    delete states[`"${action.state}"`];
-                }
-            });
-        },
-
-        /**
          * This method compares two states for identity
          * WARNING: states should not contain methods
          * @param {object} targetAction the action that you want to compare
@@ -315,11 +246,12 @@ export function newManager(action) {
          * @public
          */
         compareStates: (targetAction) => {
-            valideStorage(targetAction, repositories, "newManager.compareStates");
-            valideState(targetAction, states, "newManager.compareStates");
             return compareObject(
-                states[`"${action.state}"`][action.repo],
-                states[`"${targetAction.state}"`][action.repo]
+                getStateRepo(action).content,
+                ...getStateRepo({
+                    state: targetAction.state,
+                    repo: action.repo
+                }).content,
             );
         },
 
@@ -331,8 +263,8 @@ export function newManager(action) {
          */
         compareWithState: () => {
             return compareObject(
-                repositories[action.repo],
-                states[`"${action.state}"`][action.repo]
+                getRepository(action.repo),
+                getStateRepo(action).content
             );
         },
 
@@ -344,7 +276,7 @@ export function newManager(action) {
          * @public
          */
         compareStateWithInstance: (instance) => {
-            return compareObject(states[`"${action.state}"`][action.repo], instance);
+            return compareObject(getStateRepo(action).content, instance);
         },
 
         /**
@@ -355,7 +287,7 @@ export function newManager(action) {
          * @public
          */
         compareRepoWithInstance: (instance) => {
-            return compareObject(repositories[action.repo], instance);
+            return compareObject(getRepository(action.repo), instance);
         },
 
         /**
@@ -367,9 +299,9 @@ export function newManager(action) {
          * @public
          */
         clone: (name) => {
-            repositories[name] = { ...repositories[action.repo] };
+            repositories[name] = { ...getRepository(action.repo) };
             states[`"${action.state}"`][name] = {
-                ...states[`"${action.state}"`][action.repo]
+                ...getStateRepo(action).content
             };
         },
 

@@ -23,21 +23,16 @@ it("check subscribeToState one call", async () => {
     });
 }); 
 
-it("check subscribeToState callback", async () => {
-    expect.assertions(2);
+it("check subscribeToState callback", (done) => {
+    expect.assertions(1);
     setTimeout(() => {
         dispatch(testState1, (prev) => ({ value: prev.value + 1 }));
     }, 100)
 
     subscribeToState(testState1, (state) => {
         expect(state).toEqual({ value: 1 });
+        done();
     });
-
-    const result = await subscribeToState(testState1).then((state) => {
-        return state
-    });
-
-    expect(result).toEqual({ value: 1 });
 }); 
 
 it("check subscribeToState with different states", async () => {

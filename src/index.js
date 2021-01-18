@@ -1,43 +1,65 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { observer, useDispatch } from "./lib//react-store";
+import { createStore } from "./lib/index";
+import { newAdapter } from "./lib/middlewares/adapter";
 
-import ExempleFirst from "./ExempleFirst";
-import ExempleTree from "./ExempleTree";
-import "./styles.css";
-//import Main from "./docs/Main";
+const adapter = newAdapter();
 
-//combineStateCollections(modelStateCollection);
+adapter.action("COUNTER/TIMER", (payload, state) => {
+    return { ...payload, value: state.value + 1 };
+});
 
-//const manager = biscuitManager(modelInit);
+adapter.action("COUNTER/READY", (payload, state, send) => {
+    const value = state.value;
+    setTimeout(() => {
+        send({ ...payload, value: state.value - value });
+    }, 100)
+});
 
-// subscribeToState(manager.props, (payload) => {
-//     console.log("store === state", manager.compareWithState());
-// });
+const counterStore = createStore({
+    repo: {
+        name: "counter",
+        initial: { value: 0, ready: false }
+    },
+    states: {
+        counterAdd: "COUNTER/TIMER",
+        counterClear: "COUNTER/READY"
+    },
+    middleware: [adapter.connect]
+});
 
-// const handleMerge = () => {
-//   manager.merge();
-//   manager.update();
-// };
+const { counterAdd, counterClear } = counterStore.actions;
 
-// const handlePull = () => {
-//   manager.pull();
-//   manager.update();
-// };
+const App = observer(
+    ({ value }) => {
+        return (
+            <div className="counter">
+                <p>output: {value}</p>
+            </div>
+        );
+    },
+    [counterAdd, counterClear]
+);
 
-// const handleRemove = () => {
-//   manager.remove();
-//   manager.update();
-// };
+const Counter = () => {
+    const [add, clear] = useDispatch(
+        counterAdd, 
+        counterClear
+    );
 
-const rootElement = document.getElementById("root");
+    return (
+        <div>
+            <button onClick={() => add().after((s) => console.log(s))}>Add</ button>
+            <button onClick={clear}>Clear</ button>
+        </ div>
+    )
+}
+
 ReactDOM.render(
-    <React.StrictMode>
-        {/* <button onClick={handleMerge}>слить в храилище</button>
-        <button onClick={handlePull}>залить в состояние</button>
-        <button onClick={handleRemove}>удалить хранилище</button> */}
-        <ExempleFirst />
-        <ExempleTree />
-        {/* /<Main /> */}
-    </React.StrictMode>,
-    rootElement
+    <React.Fragment>
+        <Counter />
+        <App />
+    </ React.Fragment>,
+    document.getElementById("root")
 );

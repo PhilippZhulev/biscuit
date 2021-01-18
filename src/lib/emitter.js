@@ -1,86 +1,63 @@
-const messages = {
-    notAction: (fn, name) => `biscuit ${fn} error: the '${name}' state does not exist`
-}
-
-export function emitter(action) {
-    const taskBuffer = [];
-    let taskId = 0;
+/**
+ * Module of the library responsible for creating tasks and subscribing to them.
+ * @param  {string} action action name
+ * @return {object} methods
+ * @public
+*/
+function createEmmitor() {
+    let taskBuffer = {};
 
     return {
-
         /**
          * This method allows you to subscribe to an action. 
          * Creates a task that puts its own callback function,
          * which should then be started by the dispatcher
          * @param {string} stateName name of the state to subscribe to
          * @param {function} callback callback function that will be started by the dispatcher
+         * @param {string} state store state
          * @return {string} returned task id
          * @public
         */
-        subscribeAction: (stateName, fn) => {
-            if (stateName === action) {
-                taskId = taskId + 1; 
-
-                taskBuffer.push({
-                    name: stateName,
-                    data: null,
-                    todo: fn,
-                    launch: false,
-                    id: taskId
-                });
-
-                return taskId
-            } else {
-                throw new Error(messages.notAction("subscribeAction", stateName))
+        subscribeAction: (taskName, callback, state) => {
+            if (!taskBuffer[taskName]) {
+                taskBuffer[taskName] = [];     
             }
-        },
 
-        /**
-         * Removes the task from the buffer 
-         * thereby unsubscribing from the state.
-         * @param {string} id task id
-         * @param {boolean} isLaunch If true, the method will delete the task 
-         * without only if it has worked at least once.
-         * @return {string} returned task id
-         * @public
-        */
-        removeSubscribeAction: (id, isLaunch = false) => {
-            const targetIndex = taskBuffer.findIndex(
-                (el) => {
-                    const isId = el.id === id
-                    if (isLaunch) {
-                        return isId && el.launch;
-                    }
-
-                    return isId
+            const task = {
+                state,
+                name: taskName,
+                todo: callback,
+                id: taskBuffer[taskName].length
+            };
+            taskBuffer[taskName][task.id] = task;
+            return {
+                params: task, 
+                remove: () => {
+                    taskBuffer[taskName].splice(task.id, 1)
                 }
-            );
-
-            if (~targetIndex) {
-                taskBuffer.splice(targetIndex, 1);
             }
         },
 
         /**
         * Starts all tasks that match the specified state name
         * and passes data to their callback functions.
-        * @param {string} stateName name of the state to subscribe to
-        * @param {object} data the transmitted data
+        * @param {object} action action params
         * @async
         * @public
         */
-        dispatchAction: async (stateName, data) => {
-            if (stateName === action) {
-                for (let task of taskBuffer) {
-                    if (task.name === stateName && task.data !== data) {
-                        task.todo(data);
-                        task.data = data;
-                        task.launch = true;
+        dispatchAction: (action) => {
+            taskBuffer[action.repo].forEach((task) => {
+                if (!task.state) {
+                    task.todo(task); 
+                } else {
+                    if (task.state === action.state) {
+                        task.todo(task); 
                     }
                 }
-            } else {
-                throw new Error(messages.notAction("dispatchAction", stateName))
-            }
-        },
+            });
+        }
     }
 }
+
+
+export const emitter = createEmmitor()

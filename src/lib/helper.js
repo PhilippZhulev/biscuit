@@ -1,6 +1,16 @@
 import {
     middlewares,
+    states,
+    repositories,
 } from "./repositories";
+
+export function getStateRepo(action) {
+    return states[`"${action.state}"`][action.repo]
+}
+
+export function getRepository(name) {
+    return repositories[name].content
+}
 
 /**
  * Helper method for running middleware

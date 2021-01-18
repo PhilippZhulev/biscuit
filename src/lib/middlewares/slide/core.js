@@ -127,10 +127,10 @@ export const slides = {
     },
 
     /** 
-    * Starts the function with a delay for the specified time
+    * Asynchronous call of a function or several functions 
+    * with the specified parameters
     * @param {function} fn target function
-    * @param {number} timeout delay time
-    * @param {array[any]} args arguments
+    * @param {array[any]} props arguments
     */
     call: async function (fn, props) {
         const fns = [];
@@ -176,9 +176,15 @@ export const slides = {
             return true;
         }
 
-        return createChannel({manager, state, buffer, id, add});
+        return createChannel({ manager, state, buffer, id, add });
     },
 
+    /**
+     * Extract data from the channel and send it to the state
+     * @param {function} action state name
+     * @param {object} ch channel
+     * @param {function} callback function
+    */
     chanProvide: async (action, ch, fn) => {
         const resp = {
             send: (data) => dispatch({ repo: getRepoBuffer(), state: action }, data)
@@ -194,6 +200,11 @@ export const slides = {
         });
     },
 
+    /**
+     * Retrieves data from a channel
+     * @param {object} ch channel
+     * @param {function} callback function
+    */
     extractChan: (ch, fn) => {
         ch.manager.subscribeAction(ch.id, () => {
             if (ch.state.finally) {

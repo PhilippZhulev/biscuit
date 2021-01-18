@@ -3,13 +3,14 @@ export function newAdapter() {
     const connectors = [];
 
     return {
-    /** connector for biscuit middleware
-     * launches tasks from the scheduler when an action is triggered
-     * @param {object} context context contains action parameters
-     * @param {function} callback callback function
-     * @public
-     */
+        /** connector for biscuit middleware
+         * launches tasks from the scheduler when an action is triggered
+         * @param {object} context context contains action parameters
+         * @param {function} callback callback function
+         * @public
+         */
         connect: (context, callback) => {
+            let resolve = false;
             for (let connector of connectors) {
                 if (connector.act === context.action) {
                     (async function () {
@@ -23,9 +24,12 @@ export function newAdapter() {
                             callback(update);
                         }
                     })();
-                } else {
-                    callback(context.payload);
+                    resolve = true;
                 }
+            }
+
+            if (!resolve) {
+                callback(context.payload);
             }
         },
 

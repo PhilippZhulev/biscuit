@@ -68,9 +68,10 @@ export const sandbox = (fn) => {
             };
 
             /** initial
-    * @param {function} call target function
-             * @param {number} timer timeout
-              */
+            * @param {function} call target function
+            * @param {number} timer timeout
+            * @return {function} throttleCaller
+            */
             return (call, timer) => {
                 initialThrottle(call, timer);
                 return throttleCaller;
@@ -82,6 +83,7 @@ export const sandbox = (fn) => {
 /**
  * memoized function 
  * @param {function} fn target function
+ * @return {function}
 */
 export const memoize = (fn) => {
     let cache = {};

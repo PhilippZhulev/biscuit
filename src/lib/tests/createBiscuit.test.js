@@ -26,8 +26,10 @@ it("check new storage", () => {
 });
 
 it("check state vars", () => {
-    expect(testState1).toEqual({ state: "TEST/ACTION-1", repo: "testStorage" });
-    expect(testState2).toEqual({ state: "TEST/ACTION-2", repo: "testStorage" });
+    expect(testState1.state).toEqual("TEST/ACTION-1");
+    expect(testState1.repo).toEqual("testStorage");
+    expect(testState2.state).toEqual("TEST/ACTION-2");
+    expect(testState1.repo).toEqual("testStorage");
 });
 
 it("checking the existence of a state", () => {
@@ -97,7 +99,7 @@ it("no storage error", () => {
     try {
         createStore({})
     } catch (e) {
-        expect(e.message).toEqual("Biscuit -> [object Object] error: \"storage.name\" require field.");
+        expect(e.message).toEqual("Biscuit -> [object Object] error: \"repo.name\" require field.");
     }
 });
 
@@ -109,7 +111,7 @@ it("no storage name error", () => {
             },
         })
     } catch (e) {
-        expect(e.message).toEqual("Biscuit -> [object Object] error: \"storage.name\" require field.");
+        expect(e.message).toEqual("Biscuit -> [object Object] error: \"repo.name\" require field.");
     }
 });
 

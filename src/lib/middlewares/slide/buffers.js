@@ -5,6 +5,7 @@ export const buffers = {
     runtime: []
 };
 
+/** get repository buffer */
 export const getRepoBuffer = () => {
     return buffers.repo[0];
 };

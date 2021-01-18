@@ -13,12 +13,13 @@ export const reader = {
         return {
             /**
              * Arguments for the function
-             * @param {any} props arguments
+             * @param {args[any]} props arguments
              * @public
              */
             args: async (...props) => {
                 const result = await slides.call(fn, props);
 
+                /** is meltyfunction */
                 if (result.type === "multy") {
                     const data = [];
                     for (let i = 0; i < result.data.length; i++) {
@@ -51,8 +52,8 @@ export const reader = {
      * The difference is that this method performs 
      * an operation on the child thread and returns the task.
      * To extract data from a task, use the "read.extract" method.
-     * @param {args[function]} fn method to run
-     * @param {any} args arguments
+     * @param {function} fn method to run
+     * @param {args[any]} args arguments
      * @return {object} task
      * @public
      */
@@ -74,7 +75,7 @@ export const reader = {
      * Creates a task buffer that is subsequently 
      * executed via " read.extractAll"
      * @param {array[functions]} fns execute functions
-     * @return {array} tasks
+     * @return {array[object]} tasks
      * @public
      */
     executeAll: function (...fns) {
@@ -168,8 +169,9 @@ export const reader = {
     },
 
     /**
-     * Creates a throttled function that only invokes func 
-     * at most once per every wait milliseconds. 
+     * Creates a debounced function that delays invoking func 
+     * until after wait milliseconds have elapsed since 
+     * the last time the debounced function was invoked.
      * @param {function} fn target function
      * @param {number} timeout wait time by milliseconds
      * @param {args[any]} args arguments
@@ -185,6 +187,15 @@ export const reader = {
         });
     },
 
+    /** 
+     * Asynchronously starts several calls 
+     * and returns the result after they are executed.
+     */
     all: slides.all,
+
+    /** 
+     * Asynchronously starts several calls 
+     * and returns the first result received.
+    */
     race: slides.race
 };

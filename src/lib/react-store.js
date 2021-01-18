@@ -7,17 +7,11 @@
 
 import React, { memo, useEffect, useRef, useState } from "react";
 import { getState, dispatch } from "./store";
-import { emitters } from "./repositories";
+import { emitter } from "./emitter";
 import { sandbox, throttle, debounce } from "./utils";
 
 const boxThrottle = sandbox(throttle);
 const boxDebounce = sandbox(debounce);
-
-/** to create parameters dependency */
-const createDep = (params, value) => {
-    params.actions[`"${value.state}"`] = value.repo;
-    params.initial = { ...params.initial, ...getState(value) };
-};
 
 /**
  * subscriber react components
@@ -42,13 +36,13 @@ export default function subscribe(stateToProps, dispatchToProps) {
             componentDidMount() {
                 const result = {}
                 for (let param in dispatchToProps) {
-                    const actionName = `"${dispatchToProps[param].state}"`;
-                    const id = emitters[actionName].subscribeAction(actionName, () => {
+                    const repoName = dispatchToProps[param].repo;
+                    const task = emitter.subscribeAction(repoName, () => {
                         this.forceUpdate();
                     })
 
                     result[param] = (payload) => dispatch(dispatchToProps[param], payload);
-                    this.buf.push({actionName, id});
+                    this.buf.push(task);
                 }
 
                 this.setState({dispatchers: result})
@@ -56,8 +50,8 @@ export default function subscribe(stateToProps, dispatchToProps) {
 
             /** unmount update event */
             componentWillUnmount() {
-                for (let el in this.buf) {
-                    emitters[el.actionName].removeSubscribeAction(el.id)
+                for (let task in this.buf) {
+                    task.remove();
                 }
             }
 
@@ -83,39 +77,30 @@ export default function subscribe(stateToProps, dispatchToProps) {
  * @public
  */
 export function observer(Element, deps) {
-    const params = { actions: {}, initial: {} };
-
-    /** check and create deps */
-    if (Array.isArray(deps)) {
-        for (let value of deps) {
-            createDep(params, value);
-        }
-    } else {
-        createDep(params, deps);
-    }
+    let initial = {};
 
     /** Create decorator */
     const Decorator = (props) => {
-        const [state, setState] = useState(params.initial);
+        const [state, setState] = useState({});
         
         useEffect(() => {
-            const buf = [];
+            const tasks = [];
 
-            for (let name in params.actions) {
-                const id = emitters[name].subscribeAction(name, (data) => {
-                    if (params.actions[`"${data.action}"`]) {
-                        setState((prev) => ({ ...prev, ...data.payload }));
-                    }
-                })
-                buf.push({id, name});
+            for (let action of deps) {
+                initial = { ...initial, ...getState(action) };
+
+                const task = emitter.subscribeAction(action.repo, () => {
+                    setState((prev) => ({ ...prev, ...getState(action) }));
+                }, action.state);
+
+                tasks.push(task);
             }
-
+            setState(initial);
             return () => {
-                for (let el of buf) {
-                    emitters[el.name].removeSubscribeAction(el.id)
+                for (let task of tasks) { 
+                    task.remove();
                 }
-            };
-
+            }
         }, []);
 
         return <Element {...props} {...state} />;
@@ -139,9 +124,8 @@ export function useSubscribe(action, update = true) {
 
     useEffect(() => {
         let cache = {};
-        const actionName = `"${action}"`;
 
-        const id = emitters[actionName].subscribeAction(actionName, (data) => {
+        const task = emitter.subscribeAction(action.repo, (data) => {
             const n = data;
 
             if (update) {
@@ -157,40 +141,51 @@ export function useSubscribe(action, update = true) {
             value.current = cache[n];
         })
 
-        return () => emitters[actionName].removeSubscribeAction(id)
+        return () => task.remove();
     }, [action, update]);
 
-    return [state || value.current, (payload) => dispatch(action, payload)];
+    return [
+        state || value.current, (payload) =>
+            dispatch(action, payload)
+    ];
 }
 
 /**
  * huck dispatch
- * @param {object} action state params
- * @return {function} dispatch
+ * @param {...object} actions state params
+ * @return {array[function]} dispatch
  * @public
  */
-export function useDispatch(action) {
-    return (payload = {}) => dispatch(action, payload);
+export function useDispatch(...actions) {
+    return actions.map((action) =>
+        (payload = {}) => dispatch(action, payload)
+    );
 }
 
 /**
  * huck dispatch: throttle
- * @param {object} action state params
  * @param {number} count throttle timer
- * @return {function}  dispatch
+ * @param {...object} actions state params
+ * @return {array[function]}  dispatchers
  * @public
  */
-export function useDispatchThrottle(action, count) {
-    return (payload) => boxThrottle.run(dispatch, count)(action, payload);
+export function useDispatchThrottle(count, ...actions) {
+    return actions.map((action) =>
+        (payload = {}) =>
+            boxThrottle.run(dispatch, count)(action, payload)
+    );
 }
 
 /**
  * huck dispatch: debounce
- * @param {object} action state params
  * @param {number} count throttle timer
- * @return {function}  dispatch
+ * @param {...object} actions state params
+ * @return {array[function]}  dispatchers
  * @public
  */
-export function useDispatchDebounce(action, count) {
-    return (payload) => boxDebounce.run(dispatch, count)(action, payload);
+export function useDispatchDebounce(count, ...actions) {
+    return actions.map((action) =>
+        (payload = {}) =>
+            boxDebounce.run(dispatch, count)(action, payload)
+    );
 }

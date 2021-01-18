@@ -1,13 +1,22 @@
 import { createStore, newRepo } from "./creator";
-import { newManager, dispatch, getRepo, getState, addRepo, subscribeToState } from "./store";
-
-export {
-    createStore,
-    newManager,
+import {
+    manager,
     dispatch,
     getRepo,
     getState,
     addRepo,
     subscribeToState,
+    subscribeToStore
+} from "./store";
+
+export {
+    createStore,
+    manager,
+    dispatch,
+    getRepo,
+    getState,
+    addRepo,
+    subscribeToState,
+    subscribeToStore,
     newRepo
 }
